@@ -47,10 +47,10 @@ object EntityFactory {
   }
 
   def standardEnemyEntity(uniqueId: String): Entity = {
-    new Entity("enemy", uniqueId, Map("HP" -> 10, "ATK" -> 1), Seq(getAttackRule("ally")))
+    new Entity("enemy", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("ally")))
   }
 
   def standardAllyEntity(uniqueId: String): Entity = {
-    new Entity("ally", uniqueId, Map("HP" -> 10, "ATK" -> 1), Seq(getAttackRule("enemy")))
+    new Entity("ally", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("enemy")))
   }
 }
