@@ -32,8 +32,14 @@ object EntityFactory {
     new SinglePropertyOperationRule(
       (hp, attacker) =>
         attacker.properties.get("ATK") match {
-          case Some(atkValue) => hp - atkValue
-          case None => throw new IllegalStateException("No ATK value defined for entity " + attacker.uniqueId)
+          case Some(atkValue) =>
+            val newHpValue = hp - atkValue
+            (newHpValue,
+              "'" + attacker.uniqueId + "' attacks '" + defender + "' for " + atkValue +
+                " (hp " + hp + " -> " + newHpValue + ")"
+              )
+          case None =>
+            throw new IllegalStateException("No ATK value defined for entity " + attacker.uniqueId)
         },
       defender,
       "HP"

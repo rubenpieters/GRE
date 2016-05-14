@@ -1,11 +1,16 @@
 package be.rubenpieters.gre.engine
 
 import be.rubenpieters.gre.entity.{Entity, EntityManager}
+import be.rubenpieters.gre.log.LogListener
 
 /**
   * Created by rpieters on 14/05/2016.
   */
-class EngineRunner(entityOrder: Seq[String], entities: Set[Entity]) {
+class EngineRunner(
+                    entityOrder: Seq[String],
+                    entities: Set[Entity],
+                    logListeners: Set[LogListener]
+                  ) {
   var entityRuleQueue = entityOrder
   val entityManager = new EntityManager()
   entityManager.registerEntities(entities)
@@ -13,7 +18,8 @@ class EngineRunner(entityOrder: Seq[String], entities: Set[Entity]) {
   def runStep() = {
     val fromEntity = nextEntity()
     val currentRule = fromEntity.popRule()
-    currentRule.apply(fromEntity, entityManager)
+    val logLine = currentRule.apply(fromEntity, entityManager)
+    logListeners.foreach(_.log(logLine))
   }
 
   def updateQueue() = {
