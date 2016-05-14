@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>GRE</title>
+    </head>
+    <body>
+
+        <button id="click-me-button" type="button"
+            onclick="be.rubenpieters.gre.main.MainApp().addClickedMessage()">
+            Click me!
+        </button>
+
+        <!-- Include Scala.js compiled code -->
+        <script type="text/javascript" src="./target/scala-2.10/gre-fastopt.js"></script>
+        <!-- Run MainApp -->
+        <script type="text/javascript">
+            be.rubenpieters.gre.main.MainApp().main();
+        </script>
+    </body>
+</html>
