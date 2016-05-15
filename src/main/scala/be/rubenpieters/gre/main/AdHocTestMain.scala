@@ -8,13 +8,5 @@ import be.rubenpieters.gre.engine.EngineFactory
 object AdHocTestMain extends App {
   val engineRunner = EngineFactory.simpleEngine
 
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
-  engineRunner.runStep()
+  engineRunner.runUntilEndConditionReached()
 }

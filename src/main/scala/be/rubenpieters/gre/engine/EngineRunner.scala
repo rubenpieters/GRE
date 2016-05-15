@@ -29,6 +29,12 @@ class EngineRunner(
     }
   }
 
+  def runUntilEndConditionReached() = {
+    while (! endConditionReached) {
+      runStep()
+    }
+  }
+
   def executeRule(entity: Entity) = {
     val currentRule = entity.popRule()
     val line = currentRule.apply(entity, entityManager)
