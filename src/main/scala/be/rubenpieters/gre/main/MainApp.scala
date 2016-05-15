@@ -1,6 +1,6 @@
 package be.rubenpieters.gre.main
 
-import be.rubenpieters.gre.engine.EngineFactory
+import be.rubenpieters.gre.engine.examples.simplegame.SimpleGameEngine
 import be.rubenpieters.gre.log.LogListener
 import org.scalajs.dom
 import org.scalajs.dom.document
@@ -12,7 +12,7 @@ import scala.scalajs.js.annotation.JSExport
   * Created by rpieters on 14/05/2016.
   */
 object MainApp extends JSApp {
-  val engineRunner = EngineFactory.simpleEngineWithLoggers(Set(AppendParLogLister))
+  val engineRunner = SimpleGameEngine.simpleEngineWithLoggers(Set(AppendParLogLister))
 
   def main(): Unit = {
     appendPar(document.body, "GRE")

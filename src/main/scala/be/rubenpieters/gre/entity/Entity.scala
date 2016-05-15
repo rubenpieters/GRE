@@ -27,30 +27,3 @@ class Entity(
   }
 }
 
-object EntityFactory {
-  def getAttackRule(defender: String): AbstractRule = {
-    new SinglePropertyOperationRule(
-      (hp, attacker) =>
-        attacker.properties.get("ATK") match {
-          case Some(atkValue) =>
-            val newHpValue = hp - atkValue
-            (newHpValue,
-              "'" + attacker.uniqueId + "' attacks '" + defender + "' for " + atkValue +
-                " (hp " + hp + " -> " + newHpValue + ")"
-              )
-          case None =>
-            throw new IllegalStateException("No ATK value defined for entity " + attacker.uniqueId)
-        },
-      defender,
-      "HP"
-    )
-  }
-
-  def standardEnemyEntity(uniqueId: String): Entity = {
-    new Entity("enemy", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("ally")))
-  }
-
-  def standardAllyEntity(uniqueId: String): Entity = {
-    new Entity("ally", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("enemy")))
-  }
-}
