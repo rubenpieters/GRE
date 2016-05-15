@@ -1,5 +1,6 @@
 package be.rubenpieters.gre.engine
 
+import be.rubenpieters.gre.endcondition.ZeroHpEndCondition
 import be.rubenpieters.gre.entity.EntityFactory
 import be.rubenpieters.gre.log.{ConsolePrintListener, LogListener}
 
@@ -17,7 +18,8 @@ object EngineFactory {
     new EngineRunner(
       Seq("ally", "enemy"),
       Set(ally, enemy),
-      logListeners
+      logListeners,
+      Set(ZeroHpEndCondition)
     )
   }
 }

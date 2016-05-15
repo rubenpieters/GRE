@@ -12,4 +12,9 @@ object AdHocTestMain extends App {
   engineRunner.runStep()
   engineRunner.runStep()
   engineRunner.runStep()
+  engineRunner.runStep()
+  engineRunner.runStep()
+  engineRunner.runStep()
+  engineRunner.runStep()
+  engineRunner.runStep()
 }

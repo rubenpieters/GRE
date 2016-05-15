@@ -1,5 +1,6 @@
 package be.rubenpieters.gre.engine
 
+import be.rubenpieters.gre.endcondition.EndCondition
 import be.rubenpieters.gre.entity.{Entity, EntityManager}
 import be.rubenpieters.gre.log.LogListener
 
@@ -9,17 +10,38 @@ import be.rubenpieters.gre.log.LogListener
 class EngineRunner(
                     entityOrder: Seq[String],
                     entities: Set[Entity],
-                    logListeners: Set[LogListener]
+                    logListeners: Set[LogListener],
+                    endConditions: Set[EndCondition]
                   ) {
   var entityRuleQueue = entityOrder
   val entityManager = new EntityManager()
   entityManager.registerEntities(entities)
 
+  var endConditionReached = false
+
   def runStep() = {
-    val fromEntity = nextEntity()
-    val currentRule = fromEntity.popRule()
-    val logLine = currentRule.apply(fromEntity, entityManager)
-    logListeners.foreach(_.log(logLine))
+    if (! endConditionReached) {
+      val fromEntity = nextEntity()
+      executeRule(fromEntity)
+      checkEndConditions()
+    } else {
+      log("End condition reached")
+    }
+  }
+
+  def executeRule(entity: Entity) = {
+    val currentRule = entity.popRule()
+    val line = currentRule.apply(entity, entityManager)
+    log(line)
+  }
+
+  def checkEndConditions() = {
+    val conditionChecks = endConditions
+      .flatMap(_.checkCondition(this))
+    if (conditionChecks.nonEmpty) {
+      endConditionReached = true
+      conditionChecks.foreach(log)
+    }
   }
 
   def updateQueue() = {
@@ -33,5 +55,9 @@ class EngineRunner(
     val nextEntityId = entityRuleQueue.head
     updateQueue()
     entityManager.getEntity(nextEntityId)
+  }
+
+  def log(line: String) = {
+    logListeners.foreach(_.log(line))
   }
 }
