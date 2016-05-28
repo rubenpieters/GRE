@@ -12,7 +12,7 @@ import be.rubenpieters.gre.rules.{AbstractRule, SinglePropertyOperationRule}
 object SimpleGameEngine {
   def getAttackRule(defender: String): AbstractRule = {
     new SinglePropertyOperationRule(
-      (hp, attacker) =>
+      (hp, attacker, _) =>
         attacker.properties.get("ATK") match {
           case Some(atkValue) =>
             val newHpValue = hp - atkValue
@@ -28,12 +28,30 @@ object SimpleGameEngine {
     )
   }
 
+  def getRandomAttackRule(defender: String): AbstractRule = {
+    new SinglePropertyOperationRule(
+      (hp, attacker, rng) =>
+      {
+        val minAtk = attacker.properties.get("ATK_MIN").get
+        val maxAtk = attacker.properties.get("ATK_MAX").get
+        val atkValue = rng.nextInt(maxAtk.toInt - minAtk.toInt + 1) + minAtk
+        val newHpValue = hp - atkValue
+        (newHpValue,
+          "'" + attacker.uniqueId + "' attacks '" + defender + "' for " + atkValue +
+            " (hp " + hp + " -> " + newHpValue + ")"
+          )
+      },
+      defender,
+      "HP"
+    )
+  }
+
   def standardEnemyEntity(uniqueId: String): Entity = {
-    new Entity("enemy", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("ally")))
+    new Entity("enemy", uniqueId, Map("HP" -> 3, "ATK_MIN" -> 5, "ATK_MAX" -> 20), Seq(getRandomAttackRule("ally")))
   }
 
   def standardAllyEntity(uniqueId: String): Entity = {
-    new Entity("ally", uniqueId, Map("HP" -> 3, "ATK" -> 1), Seq(getAttackRule("enemy")))
+    new Entity("ally", uniqueId, Map("HP" -> 100, "ATK" -> 1), Seq(getAttackRule("enemy")))
   }
 
 
@@ -48,7 +66,8 @@ object SimpleGameEngine {
       Seq("ally", "enemy"),
       Set(ally, enemy),
       logListeners,
-      Set(ZeroHpEndCondition)
+      Set(ZeroHpEndCondition),
+      1L
     )
   }
 }

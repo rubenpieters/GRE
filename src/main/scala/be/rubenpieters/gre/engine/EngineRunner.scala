@@ -4,6 +4,8 @@ import be.rubenpieters.gre.endcondition.EndCondition
 import be.rubenpieters.gre.entity.{Entity, EntityManager}
 import be.rubenpieters.gre.log.LogListener
 
+import scala.util.Random
+
 /**
   * Created by rpieters on 14/05/2016.
   */
@@ -11,8 +13,11 @@ class EngineRunner(
                     entityOrder: Seq[String],
                     entities: Set[Entity],
                     logListeners: Set[LogListener],
-                    endConditions: Set[EndCondition]
+                    endConditions: Set[EndCondition],
+                    seed: Long = System.currentTimeMillis()
                   ) {
+  val rng = new Random(seed)
+
   var entityRuleQueue = entityOrder
   val entityManager = new EntityManager()
   entityManager.registerEntities(entities)
@@ -37,7 +42,7 @@ class EngineRunner(
 
   def executeRule(entity: Entity) = {
     val currentRule = entity.popRule()
-    val line = currentRule.apply(entity, entityManager)
+    val line = currentRule.apply(entity, entityManager, rng)
     log(line)
   }
 
