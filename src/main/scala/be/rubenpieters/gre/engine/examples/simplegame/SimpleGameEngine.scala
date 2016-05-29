@@ -4,7 +4,7 @@ import be.rubenpieters.gre.endcondition.ZeroHpEndCondition
 import be.rubenpieters.gre.engine.EngineRunner
 import be.rubenpieters.gre.entity.Entity
 import be.rubenpieters.gre.log.{ConsolePrintListener, LogListener}
-import be.rubenpieters.gre.rules.{AbstractRule, RuleEngineParameters, SinglePropertyOperationRule}
+import be.rubenpieters.gre.rules._
 
 /**
   * Created by rpieters on 15/05/2016.
@@ -71,16 +71,29 @@ object SimpleGameEngine {
     )
   }
 
+  def getHealIfBelowHealthThresholdRule(target: String, threshold: Float): AbstractRule = {
+    new IfConditionRule(
+      (fromEntity, params) => {
+        val targetEntity = params.entityManager.getEntity(target)
+        val hp = targetEntity.properties.get("HP").get
+        val maxHp = targetEntity.properties.get("MAX_HP").get
+        (hp.toFloat / maxHp.toFloat) < threshold
+      },
+      getHealRule(target),
+      CantripRule
+    )
+  }
+
   def standardEnemyEntity(uniqueId: String): Entity = {
     new Entity("enemy", uniqueId,
-      Map("HP" -> 5, "MAX_HP" -> 5, "ATK_MIN" -> 5, "ATK_MAX" -> 20, "HEAL_VALUE" -> 1),
+      Map("HP" -> 5, "MAX_HP" -> 5, "ATK_MIN" -> 45, "ATK_MAX" -> 80, "HEAL_VALUE" -> 1),
       Seq(getRandomAttackRule("ally"), getHealRule("enemy")))
   }
 
   def standardAllyEntity(uniqueId: String): Entity = {
     new Entity("ally", uniqueId,
-      Map("HP" -> 100, "MAX_HP" -> 100, "ATK" -> 2, "HEAL_VALUE" -> 5),
-      Seq(getAttackRule("enemy"), getHealRule("ally")))
+      Map("HP" -> 100, "MAX_HP" -> 100, "ATK" -> 2, "HEAL_VALUE" -> 50),
+      Seq(getAttackRule("enemy"), getHealIfBelowHealthThresholdRule("ally", 0.5f)))
   }
 
 
