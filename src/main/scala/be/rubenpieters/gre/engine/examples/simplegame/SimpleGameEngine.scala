@@ -4,7 +4,7 @@ import be.rubenpieters.gre.endcondition.ZeroHpEndCondition
 import be.rubenpieters.gre.engine.EngineRunner
 import be.rubenpieters.gre.entity.Entity
 import be.rubenpieters.gre.log.{ConsolePrintListener, LogListener}
-import be.rubenpieters.gre.rules.{AbstractRule, SinglePropertyOperationRule}
+import be.rubenpieters.gre.rules.{AbstractRule, RuleEngineParameters, SinglePropertyOperationRule}
 
 /**
   * Created by rpieters on 15/05/2016.
@@ -30,8 +30,9 @@ object SimpleGameEngine {
 
   def getRandomAttackRule(defender: String): AbstractRule = {
     new SinglePropertyOperationRule(
-      (hp, attacker, rng) =>
+      (hp, attacker, ruleEngineParameters) =>
       {
+        val rng = ruleEngineParameters.rng
         val minAtk = attacker.properties.get("ATK_MIN").get
         val maxAtk = attacker.properties.get("ATK_MAX").get
         val atkValue = rng.nextInt(maxAtk.toInt - minAtk.toInt + 1) + minAtk
@@ -48,13 +49,22 @@ object SimpleGameEngine {
 
   def getHealRule(target: String): AbstractRule = {
     new SinglePropertyOperationRule(
-      (hp, healer, _) => {
+      (hp, healer, ruleEngineParameters) => {
+        val targetEntity = ruleEngineParameters.entityManager.getEntity(target)
         val healValue = healer.properties.get("HEAL_VALUE").get
+        val maxHpValue = targetEntity.properties.get("MAX_HP").get
         val newHpValue = hp + healValue
-        (newHpValue,
-          "'" + healer.uniqueId + "' heals '" + target + "' for " + healValue +
-            " (hp " + hp + " -> " + newHpValue + ")"
-          )
+        if (newHpValue > maxHpValue) {
+          (maxHpValue,
+            "'" + healer.uniqueId + "' heals '" + target + "' for " + (maxHpValue - hp) +
+              ", " + (newHpValue - maxHpValue) + " hp overheal (hp " + hp + " -> " + maxHpValue + ")"
+            )
+        } else {
+          (newHpValue,
+            "'" + healer.uniqueId + "' heals '" + target + "' for " + healValue +
+              " (hp " + hp + " -> " + newHpValue + ")"
+            )
+        }
       },
       target,
       "HP"
@@ -63,13 +73,13 @@ object SimpleGameEngine {
 
   def standardEnemyEntity(uniqueId: String): Entity = {
     new Entity("enemy", uniqueId,
-      Map("HP" -> 5, "ATK_MIN" -> 5, "ATK_MAX" -> 20, "HEAL_VALUE" -> 1),
+      Map("HP" -> 5, "MAX_HP" -> 5, "ATK_MIN" -> 5, "ATK_MAX" -> 20, "HEAL_VALUE" -> 1),
       Seq(getRandomAttackRule("ally"), getHealRule("enemy")))
   }
 
   def standardAllyEntity(uniqueId: String): Entity = {
     new Entity("ally", uniqueId,
-      Map("HP" -> 100, "ATK" -> 2, "HEAL_VALUE" -> 5),
+      Map("HP" -> 100, "MAX_HP" -> 100, "ATK" -> 2, "HEAL_VALUE" -> 5),
       Seq(getAttackRule("enemy"), getHealRule("ally")))
   }
 

@@ -3,6 +3,7 @@ package be.rubenpieters.gre.engine
 import be.rubenpieters.gre.endcondition.EndCondition
 import be.rubenpieters.gre.entity.{Entity, EntityManager}
 import be.rubenpieters.gre.log.LogListener
+import be.rubenpieters.gre.rules.RuleEngineParameters
 
 import scala.util.Random
 
@@ -24,6 +25,8 @@ class EngineRunner(
 
   var endConditionReached = false
 
+  val ruleEngineParameters = RuleEngineParameters(entityManager, rng)
+
   def runStep() = {
     if (! endConditionReached) {
       val fromEntity = nextEntity()
@@ -42,7 +45,7 @@ class EngineRunner(
 
   def executeRule(entity: Entity) = {
     val currentRule = entity.popRule()
-    val line = currentRule.apply(entity, entityManager, rng)
+    val line = currentRule.apply(entity, ruleEngineParameters)
     log(line)
   }
 
