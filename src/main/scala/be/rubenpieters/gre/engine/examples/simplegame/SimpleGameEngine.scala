@@ -46,12 +46,31 @@ object SimpleGameEngine {
     )
   }
 
+  def getHealRule(target: String): AbstractRule = {
+    new SinglePropertyOperationRule(
+      (hp, healer, _) => {
+        val healValue = healer.properties.get("HEAL_VALUE").get
+        val newHpValue = hp + healValue
+        (newHpValue,
+          "'" + healer.uniqueId + "' heals '" + target + "' for " + healValue +
+            " (hp " + hp + " -> " + newHpValue + ")"
+          )
+      },
+      target,
+      "HP"
+    )
+  }
+
   def standardEnemyEntity(uniqueId: String): Entity = {
-    new Entity("enemy", uniqueId, Map("HP" -> 3, "ATK_MIN" -> 5, "ATK_MAX" -> 20), Seq(getRandomAttackRule("ally")))
+    new Entity("enemy", uniqueId,
+      Map("HP" -> 5, "ATK_MIN" -> 5, "ATK_MAX" -> 20, "HEAL_VALUE" -> 1),
+      Seq(getRandomAttackRule("ally"), getHealRule("enemy")))
   }
 
   def standardAllyEntity(uniqueId: String): Entity = {
-    new Entity("ally", uniqueId, Map("HP" -> 100, "ATK" -> 1), Seq(getAttackRule("enemy")))
+    new Entity("ally", uniqueId,
+      Map("HP" -> 100, "ATK" -> 2, "HEAL_VALUE" -> 5),
+      Seq(getAttackRule("enemy"), getHealRule("ally")))
   }
 
 
