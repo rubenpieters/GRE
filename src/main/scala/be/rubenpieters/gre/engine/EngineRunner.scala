@@ -45,7 +45,7 @@ class EngineRunner(
 
   def executeRule(entity: Entity) = {
     val currentRule = entity.popRule()
-    val line = currentRule.apply(entity, ruleEngineParameters)
+    val line = currentRule.applyAndPrependRuleLabel(entity, ruleEngineParameters)
     log(line)
   }
 
