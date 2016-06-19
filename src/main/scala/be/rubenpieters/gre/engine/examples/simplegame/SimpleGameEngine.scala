@@ -3,7 +3,7 @@ package be.rubenpieters.gre.engine.examples.simplegame
 import java.util.UUID
 
 import be.rubenpieters.gre.endcondition.ZeroHpEndCondition
-import be.rubenpieters.gre.engine.EngineRunner
+import be.rubenpieters.gre.engine.{EngineFactory, EngineRunner}
 import be.rubenpieters.gre.entity.Entity
 import be.rubenpieters.gre.log.{ConsolePrintListener, LogListener}
 import be.rubenpieters.gre.rules._
@@ -108,12 +108,25 @@ object SimpleGameEngine {
     simpleEngineWithLoggers(Set(ConsolePrintListener))
   }
 
-  def simpleEngineWithLoggers(logListeners: Set[LogListener]): EngineRunner = {
+  def simpleEngineFactory: EngineFactory = {
+    new EngineFactory(
+      Seq("ally", "enemy"),
+      createNewEntities,
+      Set(ConsolePrintListener),
+      Set(ZeroHpEndCondition)
+    )
+  }
+
+  def createNewEntities(): Set[Entity] = {
     val ally = SimpleGameEngine.standardAllyEntity("ally")
     val enemy = SimpleGameEngine.standardEnemyEntity("enemy")
+    Set(ally, enemy)
+  }
+
+  def simpleEngineWithLoggers(logListeners: Set[LogListener]): EngineRunner = {
     new EngineRunner(
       Seq("ally", "enemy"),
-      Set(ally, enemy),
+      createNewEntities(),
       logListeners,
       Set(ZeroHpEndCondition),
       1L

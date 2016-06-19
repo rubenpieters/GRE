@@ -33,5 +33,9 @@ class Entity(
       ruleSet = baseRuleSet
     }
   }
+
+  def ruleSetCost: Long = {
+    ruleSet.map(_.cost).sum
+  }
 }
 

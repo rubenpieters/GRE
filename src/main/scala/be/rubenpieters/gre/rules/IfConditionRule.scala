@@ -12,6 +12,8 @@ class IfConditionRule(
                        trueRule: AbstractRule,
                        falseRule: AbstractRule
                      ) extends AbstractRule(label) {
+  override def cost: Long = 2
+
   override def apply(fromEntity: Entity,
                      ruleEngineParameters: RuleEngineParameters
                     ): String = {

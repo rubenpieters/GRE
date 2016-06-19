@@ -9,6 +9,8 @@ import be.rubenpieters.gre.entity.Entity
   */
 abstract class AbstractRule(val label: String = UUID.randomUUID().toString) {
 
+  def cost: Long
+
   def apply(fromEntity: Entity, ruleEngineParameters: RuleEngineParameters): String
 
   def applyAndPrependRuleLabel(fromEntity: Entity, ruleEngineParameters: RuleEngineParameters): String = {

@@ -12,6 +12,8 @@ class SinglePropertyOperationRule(
                                    entityName: String,
                                    propertyName: String
                                  ) extends AbstractRule(label) {
+  override def cost: Long = 1
+
   override def apply(fromEntity: Entity, ruleEngineParameters: RuleEngineParameters): String = {
     val entityManager = ruleEngineParameters.entityManager
 

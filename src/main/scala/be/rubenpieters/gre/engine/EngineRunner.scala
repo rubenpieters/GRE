@@ -17,6 +17,8 @@ class EngineRunner(
                     endConditions: Set[EndCondition],
                     seed: Long = System.currentTimeMillis()
                   ) {
+  verifyRuleSetCosts()
+
   val rng = new Random(seed)
 
   var entityRuleQueue = entityOrder
@@ -26,6 +28,14 @@ class EngineRunner(
   var endConditionReached = false
 
   val ruleEngineParameters = RuleEngineParameters(entityManager, rng)
+
+  def verifyRuleSetCosts() = {
+    val costs = entities.map{e => (e, e.ruleSetCost)}
+        .filter (_._2 > 10)
+    if (costs.nonEmpty) {
+      throw new IllegalStateException("Entities " + costs.map(_._1.uniqueId) + " have illegal costs of " + costs.map(_._2))
+    }
+  }
 
   def runStep() = {
     if (! endConditionReached) {
