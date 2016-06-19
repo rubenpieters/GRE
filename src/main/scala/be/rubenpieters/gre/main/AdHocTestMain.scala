@@ -13,6 +13,12 @@ object AdHocTestMain extends App {
 }
 
 object AdHocTestMainSimulation extends App {
-  val simulationRunner = new SimulationRunner(SimpleGameEngine.simpleEngineFactory)
-  simulationRunner.runXSimulations(2)
+  val simulationRunner = new SimulationRunner(SimpleGameEngine.simpleEngineFactory,
+    entityManager => {
+      (entityManager.getEntity("ally").properties.getOrElse("HP", Long.MinValue),
+        entityManager.getEntity("enemy").properties.getOrElse("HP", Long.MinValue)
+        )
+    }
+  )
+  simulationRunner.runXSimulations(10)
 }
