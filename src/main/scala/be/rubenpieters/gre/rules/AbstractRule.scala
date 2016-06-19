@@ -7,7 +7,7 @@ import be.rubenpieters.gre.entity.Entity
 /**
   * Created by rpieters on 14/05/2016.
   */
-abstract class AbstractRule(label: String = UUID.randomUUID().toString) {
+abstract class AbstractRule(val label: String = UUID.randomUUID().toString) {
 
   def apply(fromEntity: Entity, ruleEngineParameters: RuleEngineParameters): String
 

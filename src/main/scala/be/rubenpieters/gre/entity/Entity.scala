@@ -1,6 +1,6 @@
 package be.rubenpieters.gre.entity
 
-import be.rubenpieters.gre.rules.{SinglePropertyOperationRule, AbstractRule}
+import be.rubenpieters.gre.rules.AbstractRule
 
 /**
   * Created by rpieters on 14/05/2016.
@@ -17,6 +17,14 @@ class Entity(
     val poppedRule = ruleSet.head
     updateRuleSet()
     poppedRule
+  }
+
+  def goToLabel(label: String) = {
+    val ruleIndex = ruleSet.indexWhere{rule => rule.label.equals(label)}
+    if (ruleIndex == -1) {
+      throw new IllegalStateException("Entity " + uniqueId + " does not have a rule with label " + label)
+    }
+    ruleSet = baseRuleSet.drop(ruleIndex)
   }
 
   def updateRuleSet() = {

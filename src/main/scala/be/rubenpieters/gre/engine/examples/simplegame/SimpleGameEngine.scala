@@ -86,7 +86,8 @@ object SimpleGameEngine {
         (hp.toFloat / maxHp.toFloat) < threshold
       },
       getHealRule(target, UUID.randomUUID.toString),
-      new CantripRule(UUID.randomUUID.toString)
+      //new CantripRule(UUID.randomUUID.toString)
+      new JumpToLabelRule("HEAL_ELSE_JMP", "LBL_AL_ATK")
     )
   }
 
