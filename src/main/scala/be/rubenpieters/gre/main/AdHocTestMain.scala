@@ -24,12 +24,16 @@ object AdHocTestMainSimulation extends App {
   simulationRunner.runXSimulations(10)
 }
 object AdHocTestBlackjackSimulation extends App {
-  val simulationRunner = new SimulationRunner(SimpleBlackjackEngine.simpleEngineFactory,
+  val simulationRunner = new SimulationRunner(SimpleBlackjackEngine.factory(16),
     entityManager => {
       (entityManager.getEntity("player").properties.getOrElse("CURRENT_TOTAL", Long.MinValue),
         entityManager.getEntity("dealer").properties.getOrElse("CURRENT_TOTAL", Long.MinValue)
         )
     }
   )
-  simulationRunner.runXSimulations(3)
+  val results = simulationRunner.runXSimulations(100000)
+  val playerWins = results.filter{x => x._2 >= 21}
+  val dealerWins = results.filter{x => x._1 >= 21}
+  println("player wins: " + playerWins.size)
+  println("dealer wins: " + dealerWins.size)
 }
