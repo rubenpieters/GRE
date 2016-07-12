@@ -36,3 +36,4 @@ object AppendParLogLister extends LogListener {
     MainApp.appendPar(document.body, logLine)
   }
 }
+
