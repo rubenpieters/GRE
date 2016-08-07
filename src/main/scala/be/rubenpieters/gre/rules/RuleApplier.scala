@@ -26,7 +26,7 @@ abstract class Rule {
           entity.ruleSet
         ))
     }
-    ImmutableEntityManager(updatedEntityMap)
+    ImmutableEntityManager(immutableEntityManager.entityMap ++ updatedEntityMap, immutableEntityManager.entityIdSequence, immutableEntityManager.nextEntityId)
   }
 }
 
@@ -68,7 +68,7 @@ case class ImmutableEntity(
                             properties: Map[String, Long],
                             ruleSet: RuleSet
                           ) {
-  def nextRuleFunc(): (ImmutableEntityManager) => ImmutableEntityManager = {
+  def nextRuleFunc: (ImmutableEntityManager) => ImmutableEntityManager = {
     val nextRule = ruleSet.ruleSeq(ruleSet.currentRuleId)
     nextRule(uniqueId)
   }
@@ -79,18 +79,44 @@ case class RuleSet(ruleSeq: Seq[Rule], currentRuleId: Int)
 object RuleSet {
   def init(ruleSeq: Seq[Rule]): RuleSet = {
     ruleSeq match {
-      case Seq() => throw new IllegalArgumentException("RuleSequence must have atleast one rule to initialize")
+      case Seq() => throw new IllegalArgumentException("RuleSequence must have at least one rule to initialize")
       case _ =>
     }
     RuleSet(ruleSeq, 0)
   }
 }
 
-case class ImmutableEntityManager(entityMap: Map[String, ImmutableEntity])
+case class ImmutableEntityManager(entityMap: Map[String, ImmutableEntity], entityIdSequence: Seq[String], currentEntityId: Int) {
+  def nextRuleFunc: (ImmutableEntityManager) => ImmutableEntityManager = {
+    entityMap.get(entityIdSequence(currentEntityId)).get.nextRuleFunc
+  }
+
+  def applyNextRule: ImmutableEntityManager = {
+    val nextRuleFunc = entityMap.get(entityIdSequence(currentEntityId)).get.nextRuleFunc
+    nextRuleFunc.apply(this)
+  }
+
+  def nextEntityId = {
+    val tryNextId = currentEntityId + 1
+    println("TRY: " + tryNextId)
+    if (tryNextId >= entityIdSequence.size) {
+      println("F")
+      0
+    } else {
+      println("T")
+      tryNextId
+    }
+  }
+}
 
 object ImmutableEntityManager {
   def init(entities: Seq[ImmutableEntity]): ImmutableEntityManager = {
-    ImmutableEntityManager(entities.map{e => (e.uniqueId, e)}.toMap)
+    entities match {
+      case Seq() => throw new IllegalArgumentException("EntitySequence must have at least one rule to initialize")
+      case _ =>
+    }
+    val entityIdSequence = entities.map{e => e.uniqueId}
+    ImmutableEntityManager(entityIdSequence.zip(entities).toMap, entityIdSequence, 0)
   }
 }
 
@@ -106,14 +132,20 @@ object Adhoc extends App {
     }
   }
 
-
-
-
   val ruleSeq: Seq[Rule] = Seq(InitializeRule)
-  val entity = ImmutableEntity("GroupId", "Entity1", Map(), RuleSet.init(ruleSeq))
-  val entityManager = ImmutableEntityManager.init(Seq(entity))
+  val entity1 = ImmutableEntity("GroupId", "Entity1", Map(), RuleSet.init(ruleSeq))
+  val entity2 = ImmutableEntity("GroupId", "Entity2", Map(), RuleSet.init(ruleSeq))
+  val entityManager = ImmutableEntityManager.init(Seq(entity1, entity2))
 
-  val nextEntityManager = entity.nextRuleFunc().apply(entityManager)
+  val entityManager1 = entityManager.applyNextRule
 
-  println(nextEntityManager.entityMap.get("Entity1").get)
+  println(entityManager1.entityMap.get("Entity1").get)
+  println(entityManager1.entityMap.get("Entity2").get)
+  println(entityManager1.nextEntityId)
+
+  val entityManager2 = entityManager1.applyNextRule
+
+  println(entityManager2.entityMap.get("Entity1").get)
+  println(entityManager2.entityMap.get("Entity2").get)
+  println(entityManager2.nextEntityId)
 }
