@@ -2,7 +2,7 @@ package be.rubenpieters.gre.rules
 
 import java.util.UUID
 
-import be.rubenpieters.gre.entity.{ImmutableEntity, ImmutableEntityManager}
+import be.rubenpieters.gre.entity.{EntityResolver, ImmutableEntity, ImmutableEntityManager}
 
 /**
   * Created by rpieters on 14/05/2016.
@@ -10,26 +10,40 @@ import be.rubenpieters.gre.entity.{ImmutableEntity, ImmutableEntityManager}
 abstract class AbstractRule {
   this: OverrideCreator with Costed with Labeled =>
 
-  def apply(fromEntityId: String)(immutableEntityManager: ImmutableEntityManager) = {
-    val propertyOverrides = createOverrides(fromEntityId, immutableEntityManager)
+  def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager, ruleEngineParameters: RuleEngineParameters) = {
+    val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
+    propertyOverrides.foreach(println)
 
+    // update properties of all entities
     val propertyOverridesPerEntity = propertyOverrides.groupBy(_.entityName)
-    val updatedEntityMap = propertyOverridesPerEntity.map { case (entityName, propertyOverrideSeq) =>
+    val updatedEntityMap =
+      // old entity map
+      immutableEntityManager.entityMap ++
+      // overridden by the updated entities
+      propertyOverridesPerEntity.map { case (entityName, propertyOverrideSeq) =>
       val entity = immutableEntityManager.entityMap.get(entityName).get
       (entityName,
         ImmutableEntity(
           entity.groupId,
           entity.uniqueId,
-          entity.properties ++ PropertyOverride.seqPropertyOverrideToMap(propertyOverrideSeq),
+          entity.properties ++ AbstractPropertyOverride.seqPropertyOverrideToMap(propertyOverrideSeq),
           entity.ruleSet
         ))
     }
-    ImmutableEntityManager(immutableEntityManager.entityMap ++ updatedEntityMap, immutableEntityManager.entityIdSequence, immutableEntityManager.nextEntityId)
+    // update rule counter of fromEntity
+    val fromEntity = updatedEntityMap(fromEntityName)
+    val fromEntityWithIncrRuleCounter = Map(fromEntityName -> fromEntity.withIncrRuleCounter)
+
+    ImmutableEntityManager(updatedEntityMap ++ fromEntityWithIncrRuleCounter,
+      immutableEntityManager.entityIdSequence,
+      immutableEntityManager.nextEntityId,
+      immutableEntityManager.ruleEngineParameters
+    )
   }
 }
 
 trait OverrideCreator {
-  def createOverrides(fromEntityId: String, immutableEntityManager: ImmutableEntityManager): Seq[PropertyOverride]
+  def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride]
 }
 
 trait Costed {
@@ -49,15 +63,30 @@ trait UuidLabeled extends Labeled {
 
 }
 
-case class PropertyOverride(entityName: String, propertyName: String, newValue: Long) {
-
+trait AbstractPropertyOverride {
+  def entityName: String
+  def propertyName: String
+  def newValue: Long
 }
-
-
-object PropertyOverride {
-  def seqPropertyOverrideToMap(propertyOverrides: Seq[PropertyOverride]): Map[String, Long] = {
+object AbstractPropertyOverride {
+  def seqPropertyOverrideToMap(propertyOverrides: Seq[AbstractPropertyOverride]): Map[String, Long] = {
     propertyOverrides.map{ po => (po.propertyName, po.newValue)}.toMap
   }
 }
+
+case class ConstantPropertyOverride(entityName: String, propertyName: String, newValue: Long) extends AbstractPropertyOverride
+
+case class PlusPropertyOverride(entityResolver: EntityResolver,
+                                entityName: String,
+                                propertyName: String,
+                                addValue: Long
+                               ) extends AbstractPropertyOverride {
+  def newValue: Long = {
+    entityResolver.getEntityProperty(entityName, propertyName) + addValue
+  }
+}
+
+
+
 
 abstract class DefaultRule extends AbstractRule with OverrideCreator with Costed with UuidLabeled

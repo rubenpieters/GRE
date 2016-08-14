@@ -24,7 +24,7 @@ class EngineRunner(
 
   var endConditionReached = false
 
-  val ruleEngineParameters = RuleEngineParameters(entityManager, rng)
+  val ruleEngineParameters = RuleEngineParameters(rng)
 
   def verifyRuleSetCosts() = {
 
@@ -32,6 +32,7 @@ class EngineRunner(
 
   def runStep() = {
     if (! endConditionReached) {
+      println("--- ")
       entityManager = entityManager.nextState
       checkEndConditions()
     } else {

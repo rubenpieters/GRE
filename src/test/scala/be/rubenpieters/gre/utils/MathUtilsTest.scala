@@ -1,6 +1,5 @@
 package be.rubenpieters.gre.utils
 
-import be.rubenpieters.gre.utils.MathUtils
 import org.scalatest.{FlatSpec, Matchers}
 
 /**

@@ -12,8 +12,10 @@ case class ImmutableEntity(
                             ruleSet: RuleSet
                           ) {
   val activeRule = ruleSet.activeRule.apply(uniqueId) _
+  lazy val withIncrRuleCounter = ImmutableEntity(groupId, uniqueId, properties, ruleSet.withIncrRuleCounter)
 
   def getPropertyByName(propertyName: String): Long = {
     properties(propertyName)
   }
+
 }

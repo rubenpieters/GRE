@@ -9,7 +9,8 @@ case class RuleSet(ruleSeq: Seq[AbstractRule], currentRuleId: Int) {
   require(currentRuleId < ruleSeq.size)
 
   val activeRule = ruleSeq(currentRuleId)
-  val nextRule = MathUtils.addOneWithWraparound(currentRuleId, ruleSeq.size)
+  lazy val nextRule = MathUtils.addOneWithWraparound(currentRuleId, ruleSeq.size)
+  lazy val withIncrRuleCounter = RuleSet(ruleSeq, nextRule)
 }
 
 object RuleSet {
