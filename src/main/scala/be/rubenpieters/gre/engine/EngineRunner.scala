@@ -32,7 +32,6 @@ class EngineRunner(
 
   def runStep() = {
     if (! endConditionReached) {
-      println("--- ")
       entityManager = entityManager.nextState
       checkEndConditions()
     } else {

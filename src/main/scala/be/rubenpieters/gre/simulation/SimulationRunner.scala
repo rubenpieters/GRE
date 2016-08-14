@@ -12,21 +12,20 @@ class SimulationRunner[T](
                            entities: Seq[ImmutableEntity],
                            logListeners: Set[LogListener],
                            endConditions: Set[EndCondition],
-                           seed: Long,
                            simulationResult: ImmutableEntityManager => T
                          ) {
   def runXSimulations(x: Long): Seq[T] = {
-    val result = (1L to x).map { i =>
+    val result = (1L to x).par.map { i =>
       //println("SIMULATION " + i)
       val engine = new EngineRunner(
         entities,
         logListeners,
         endConditions,
-        seed
+        i
       )
       engine.runUntilEndConditionReached()
       simulationResult.apply(engine.entityManager)
     }
-    result
+    result.seq
   }
 }

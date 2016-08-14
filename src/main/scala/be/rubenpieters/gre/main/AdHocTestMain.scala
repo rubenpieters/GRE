@@ -6,6 +6,7 @@ import be.rubenpieters.gre.engine.examples.battlegame.{AttackWithWeaponRule, Equ
 import be.rubenpieters.gre.entity.ImmutableEntity
 import be.rubenpieters.gre.log.ConsolePrintListener
 import be.rubenpieters.gre.rules.RuleSet
+import be.rubenpieters.gre.simulation.SimulationRunner
 
 
 /**
@@ -24,7 +25,7 @@ object AdHocTestMain extends App {
       new AttackWithWeaponRule("E1")
     )))
 
-  val runner = new EngineRunner(
+  /*val runner = new EngineRunner(
     Seq(entity1, entity2)
     ,Set(ConsolePrintListener)
     ,Set(ZeroHpEndCondition)
@@ -32,5 +33,16 @@ object AdHocTestMain extends App {
 
   runner.runUntilEndConditionReached()
 
-  println(runner.entityManager)
+  println(runner.entityManager)*/
+
+  val simulation = new SimulationRunner[(Long, Long)](
+    Seq(entity1, entity2)
+    ,Set()
+    ,Set(ZeroHpEndCondition)
+    ,(immutableEntityManager) => (immutableEntityManager.getEntityProperty("E1", "HP"), immutableEntityManager.getEntityProperty("E2", "HP"))
+  )
+
+  val simulationResults = simulation.runXSimulations(10000)
+  println(simulationResults.count{ x => x._1 <= 0})
+  println(simulationResults.count{ x => x._2 <= 0})
 }

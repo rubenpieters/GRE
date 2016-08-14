@@ -3,16 +3,21 @@ package be.rubenpieters.gre.rules
 import java.util.UUID
 
 import be.rubenpieters.gre.entity.{EntityResolver, ImmutableEntity, ImmutableEntityManager}
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 /**
   * Created by rpieters on 14/05/2016.
   */
 abstract class AbstractRule {
   this: OverrideCreator with Costed with Labeled =>
+  val logger = Logger(LoggerFactory.getLogger("SingleRun"))
 
   def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager, ruleEngineParameters: RuleEngineParameters) = {
+    logger.debug(s"executing $label")
+
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
-    propertyOverrides.foreach(println)
+    propertyOverrides.foreach { x => logger.debug(s"override $x") }
 
     // update properties of all entities
     val propertyOverridesPerEntity = propertyOverrides.groupBy(_.entityName)
@@ -81,8 +86,10 @@ case class PlusPropertyOverride(entityResolver: EntityResolver,
                                 propertyName: String,
                                 addValue: Long
                                ) extends AbstractPropertyOverride {
-  def newValue: Long = {
-    entityResolver.getEntityProperty(entityName, propertyName) + addValue
+  lazy val newValue: Long = entityResolver.getEntityProperty(entityName, propertyName) + addValue
+
+  override def toString: String = {
+    s"PlusPropertyOverride(enNm: $entityName, prNm: $propertyName, av: $addValue, nv: $newValue)"
   }
 }
 

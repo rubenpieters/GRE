@@ -1,7 +1,6 @@
 package be.rubenpieters.gre.engine.examples.battlegame
 
-import be.rubenpieters.gre.entity.{EntityResolver, ImmutableEntityManager}
-import be.rubenpieters.gre.entity.ImmutableEntityManager._
+import be.rubenpieters.gre.entity.EntityResolver
 import be.rubenpieters.gre.rules._
 import be.rubenpieters.gre.utils.RngUtils
 
