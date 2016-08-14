@@ -1,6 +1,6 @@
 package be.rubenpieters.gre.entity
 
-import be.rubenpieters.gre.rules.RuleSet
+import be.rubenpieters.gre.rules.{AbstractRule, RuleSet}
 
 /**
   * Created by rpieters on 14/08/2016.
@@ -9,7 +9,8 @@ case class ImmutableEntity(
                             groupId: String,
                             uniqueId: String,
                             properties: Map[String, Long],
-                            ruleSet: RuleSet
+                            ruleSet: RuleSet,
+                            initializationRules: Seq[AbstractRule] = Seq()
                           ) {
   val activeRule = ruleSet.activeRule.apply(uniqueId) _
   lazy val withIncrRuleCounter = ImmutableEntity(groupId, uniqueId, properties, ruleSet.withIncrRuleCounter)

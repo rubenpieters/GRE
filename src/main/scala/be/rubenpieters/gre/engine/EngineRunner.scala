@@ -3,7 +3,7 @@ package be.rubenpieters.gre.engine
 import be.rubenpieters.gre.endcondition.EndCondition
 import be.rubenpieters.gre.entity.{ImmutableEntity, ImmutableEntityManager}
 import be.rubenpieters.gre.log.LogListener
-import be.rubenpieters.gre.rules.RuleEngineParameters
+import be.rubenpieters.gre.rules.{AbstractRule, RuleEngineParameters}
 
 import scala.util.Random
 
@@ -21,6 +21,7 @@ class EngineRunner(
   val rng = new Random(seed)
 
   var entityManager = ImmutableEntityManager.entityManagerInit(entities)
+  runInitialization()
 
   var endConditionReached = false
 
@@ -28,6 +29,14 @@ class EngineRunner(
 
   def verifyRuleSetCosts() = {
 
+  }
+
+  def runInitialization() = {
+    entities.foreach { entity =>
+      entity.initializationRules.foreach { rule =>
+        entityManager = entityManager.applyRule(rule(entity.uniqueId))
+      }
+    }
   }
 
   def runStep() = {

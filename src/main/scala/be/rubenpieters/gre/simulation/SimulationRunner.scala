@@ -4,6 +4,7 @@ import be.rubenpieters.gre.endcondition.EndCondition
 import be.rubenpieters.gre.engine.EngineRunner
 import be.rubenpieters.gre.entity.{ImmutableEntity, ImmutableEntityManager}
 import be.rubenpieters.gre.log.LogListener
+import be.rubenpieters.gre.rules.RuleEngineParameters
 
 /**
   * Created by rpieters on 19/06/2016.

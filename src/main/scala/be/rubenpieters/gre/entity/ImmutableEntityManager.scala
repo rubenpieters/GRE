@@ -15,7 +15,7 @@ case class ImmutableEntityManager(
   extends EntityResolver {
   require(currentEntityId < entityMap.size)
 
-  lazy val nextState = entityMap.get(entityIdSequence(currentEntityId)).get.activeRule.apply(this, ruleEngineParameters)
+  lazy val nextState = applyRule(entityMap.get(entityIdSequence(currentEntityId)).get.activeRule)
   lazy val nextEntityId = MathUtils.addOneWithWraparound(currentEntityId, entityIdSequence.size)
 
   def getEntityByName(entityName: String): ImmutableEntity = {
@@ -24,6 +24,10 @@ case class ImmutableEntityManager(
 
   override def getEntityProperty(entityName: String, propertyName: String): Long = {
     getEntityByName(entityName).getPropertyByName(propertyName)
+  }
+
+  def applyRule(rule: (ImmutableEntityManager, RuleEngineParameters) => ImmutableEntityManager): ImmutableEntityManager = {
+    rule.apply(this, ruleEngineParameters)
   }
 }
 
