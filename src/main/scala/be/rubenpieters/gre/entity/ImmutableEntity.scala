@@ -2,6 +2,8 @@ package be.rubenpieters.gre.entity
 
 import be.rubenpieters.gre.rules.{AbstractRule, RuleSet}
 
+import scala.util.Random
+
 /**
   * Created by rpieters on 14/08/2016.
   */
@@ -17,6 +19,10 @@ case class ImmutableEntity(
 
   def getPropertyByName(propertyName: String): Long = {
     properties(propertyName)
+  }
+
+  def withShuffledRules(rng: Random): ImmutableEntity = {
+    ImmutableEntity(groupId, uniqueId, properties, ruleSet.shuffled(rng), initializationRules)
   }
 
 }

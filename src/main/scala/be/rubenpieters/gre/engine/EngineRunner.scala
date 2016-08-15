@@ -20,7 +20,8 @@ class EngineRunner(
 
   val rng = new Random(seed)
 
-  var entityManager = ImmutableEntityManager.entityManagerInit(entities)
+  val entitiesWithShuffledRules = entities.map(_.withShuffledRules(rng))
+  var entityManager = ImmutableEntityManager.entityManagerInit(entitiesWithShuffledRules)
   runInitialization()
 
   var endConditionReached = false

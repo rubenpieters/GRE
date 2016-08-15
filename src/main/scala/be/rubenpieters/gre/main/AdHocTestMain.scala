@@ -26,7 +26,7 @@ object AdHocTestMain extends App {
     Seq(new EquipWeaponRule(Weapon(5, 5, 1)))
   )
 
-  /*val runner = new EngineRunner(
+  val runner = new EngineRunner(
     Seq(entity1, entity2)
     ,Set()
     ,Set(ZeroHpEndCondition)
@@ -34,9 +34,9 @@ object AdHocTestMain extends App {
 
   runner.runUntilEndConditionReached()
 
-  println(runner.entityManager)*/
+  println(runner.entityManager)
 
-  val simulation = new SimulationRunner[(Long, Long)](
+  /*val simulation = new SimulationRunner[(Long, Long)](
     Seq(entity1, entity2)
     ,Set()
     ,Set(ZeroHpEndCondition)
@@ -45,5 +45,5 @@ object AdHocTestMain extends App {
 
   val simulationResults = simulation.runXSimulations(10000)
   println(simulationResults.count{ x => x._1 <= 0})
-  println(simulationResults.count{ x => x._2 <= 0})
+  println(simulationResults.count{ x => x._2 <= 0})*/
 }
