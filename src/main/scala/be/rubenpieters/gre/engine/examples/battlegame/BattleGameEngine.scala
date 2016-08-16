@@ -43,3 +43,13 @@ class AttackWithWeaponRule(targetId: String) extends DefaultRule {
     )
   }
 }
+
+class HealRule(amt: Long) extends DefaultRule {
+  override def label = "HEAL"
+
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    Seq(
+      MaxClampedPlusPropertyOverride(entityResolver, fromEntityId, "HP", amt, entityResolver.getEntityProperty(fromEntityId, "MAXHP"))
+    )
+  }
+}

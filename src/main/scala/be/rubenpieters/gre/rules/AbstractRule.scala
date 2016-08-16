@@ -14,7 +14,7 @@ abstract class AbstractRule {
   val logger = Logger(LoggerFactory.getLogger("SingleRun"))
 
   def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager, ruleEngineParameters: RuleEngineParameters) = {
-    logger.debug(s"executing $label")
+    logger.debug(s"$fromEntityName executing $label")
 
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
     propertyOverrides.foreach { x => logger.debug(s"override $x") }
@@ -93,7 +93,23 @@ case class PlusPropertyOverride(entityResolver: EntityResolver,
   }
 }
 
+case class MaxClampedPlusPropertyOverride(entityResolver: EntityResolver,
+                                          entityName: String,
+                                          propertyName: String,
+                                          addValue: Long,
+                                          maxValue: Long
+                                       ) extends AbstractPropertyOverride {
+  lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
+  lazy val newValue: Long = if (oldValue > maxValue - addValue) {
+    maxValue
+  } else {
+    oldValue + addValue
+  }
 
+  override def toString: String = {
+    s"MaxClampedPlusPropertyOverride(enNm: $entityName, prNm: $propertyName, av: $addValue, mv: $maxValue, nv: $newValue)"
+  }
+}
 
 
 abstract class DefaultRule extends AbstractRule with OverrideCreator with Costed with UuidLabeled
