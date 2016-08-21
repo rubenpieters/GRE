@@ -21,7 +21,9 @@ class EngineRunner(
   val rng = new Random(seed)
 
   val entitiesWithShuffledRules = entities.map(_.withShuffledRules(rng))
-  var entityManager = ImmutableEntityManager.entityManagerInit(entitiesWithShuffledRules)
+  var entityManagerHistory =
+    Seq(ImmutableEntityManager.entityManagerInit(entitiesWithShuffledRules))
+  def lastEntityManager = entityManagerHistory.last
   runInitialization()
 
   var endConditionReached = false
@@ -35,14 +37,14 @@ class EngineRunner(
   def runInitialization() = {
     entities.foreach { entity =>
       entity.initializationRules.foreach { rule =>
-        entityManager = entityManager.applyRule(rule(entity.uniqueId))
+        entityManagerHistory = entityManagerHistory :+ lastEntityManager.applyRule(rule(entity.uniqueId))
       }
     }
   }
 
   def runStep() = {
     if (! endConditionReached) {
-      entityManager = entityManager.nextState
+      entityManagerHistory = entityManagerHistory :+ lastEntityManager.nextState
       checkEndConditions()
     } else {
       log("End condition reached")

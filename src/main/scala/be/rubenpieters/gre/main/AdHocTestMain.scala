@@ -15,20 +15,21 @@ import be.rubenpieters.gre.simulation.SimulationRunner
 object AdHocTestMain extends App {
   val entity1 = ImmutableEntity("G1", "E1", Map("HP" -> 100, "MAXHP" -> 100, "FATIGUE_TURNS" -> 0),
     RuleSet.initWithRepresentationAmount(Seq(
-      (7, new AttackWithWeaponRule("E2"))
+      (10, new AttackWithWeaponRule("E2"))
       ,(1, new EquipWeaponRule(Weapon(6, 12, 1)))
-      ,(3, new RegenFatigueRule())
+      ,(10, new RegenFatigueRule())
+      ,(5, new DisarmRule("E2"))
     )),
-    Seq(new EquipWeaponRule(Weapon(1, 1, 0)))
+    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
   )
   val entity2 = ImmutableEntity("G2", "E2", Map("HP" -> 100, "MAXHP" -> 100, "FATIGUE_TURNS" -> 0),
     RuleSet.initWithRepresentationAmount(Seq(
       (2, new AttackWithWeaponRule("E1"))
-      ,(3, new HealRule(10))
+      ,(1, new HealRule(10))
       ,(1, new EquipWeaponRule(Weapon(20, 40, 4)))
       ,(5, new RegenFatigueRule())
     )),
-    Seq(new EquipWeaponRule(Weapon(1, 1, 0)))
+    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
   )
 
   val runner = new EngineRunner(
@@ -39,9 +40,13 @@ object AdHocTestMain extends App {
 
   runner.runUntilEndConditionReached()
 
-  println(runner.entityManager)
+  /*val property = "HP"
+  val e1Hp = runner.entityManagerHistory.map{ x => x.getEntityProperty("E1", property)}
+  val e2Hp = runner.entityManagerHistory.map{ x => x.getEntityProperty("E2", property)}
 
-  /*val simulation = new SimulationRunner[(Long, Long)](
+  e1Hp.zip(e2Hp).map{ case (a,b) => List(a,b).mkString("\t")}.foreach(println)*/
+
+  val simulation = new SimulationRunner[(Long, Long)](
     Seq(entity1, entity2)
     ,Set()
     ,Set(ZeroHpEndCondition)
@@ -52,5 +57,5 @@ object AdHocTestMain extends App {
   println ("E1 losses")
   println(simulationResults.count{ x => x._1 <= 0})
   println ("E2 losses")
-  println(simulationResults.count{ x => x._2 <= 0})*/
+  println(simulationResults.count{ x => x._2 <= 0})
 }

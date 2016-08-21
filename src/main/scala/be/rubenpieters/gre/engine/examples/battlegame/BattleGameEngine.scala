@@ -8,7 +8,7 @@ import be.rubenpieters.gre.utils.RngUtils
   * Created by rpieters on 7/08/2016.
   */
 object BattleGameEngine {
-
+  val baseWeapon = Weapon(1, 1, 0)
 
 }
 
@@ -23,6 +23,19 @@ class EquipWeaponRule(weapon: Weapon) extends DefaultRule {
       ConstantPropertyOverride(fromEntityId, "WEAPON_MIN_ATK", weapon.minAtk)
       ,ConstantPropertyOverride(fromEntityId, "WEAPON_MAX_ATK", weapon.maxAtk)
       ,ConstantPropertyOverride(fromEntityId, "WEAPON_FATIGUE_TURNS", weapon.fatigueTurns)
+    )
+  }
+}
+
+class DisarmRule(targetId: String) extends DefaultRule {
+  override def label = "DISARM"
+
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
+                               ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    Seq(
+      ConstantPropertyOverride(targetId, "WEAPON_MIN_ATK", BattleGameEngine.baseWeapon.minAtk)
+      ,ConstantPropertyOverride(targetId, "WEAPON_MAX_ATK", BattleGameEngine.baseWeapon.maxAtk)
+      ,ConstantPropertyOverride(targetId, "WEAPON_FATIGUE_TURNS", BattleGameEngine.baseWeapon.fatigueTurns)
     )
   }
 }

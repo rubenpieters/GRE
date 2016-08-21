@@ -6,7 +6,7 @@ import be.rubenpieters.gre.engine.EngineRunner
   */
 object ZeroHpEndCondition extends EndCondition {
   override def checkCondition(engineRunner: EngineRunner): Option[String] = {
-    val checkResult = engineRunner.entityManager.entityMap.exists { case (id, entity) =>
+    val checkResult = engineRunner.lastEntityManager.entityMap.exists { case (id, entity) =>
       entity.properties.get("HP") match {
         case Some(hp) if hp <= 0 => true
         case _ => false
