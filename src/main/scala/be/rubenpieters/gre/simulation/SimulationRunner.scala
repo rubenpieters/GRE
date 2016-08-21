@@ -17,7 +17,9 @@ class SimulationRunner[T](
                          ) {
   def runXSimulations(x: Long): Seq[T] = {
     val result = (1L to x).par.map { i =>
-      //println("SIMULATION " + i)
+      if (i % 100 == 0) {
+
+      }
       val engine = new EngineRunner(
         entities,
         logListeners,

@@ -17,24 +17,24 @@ abstract class AbstractRule {
     logger.debug(s"$fromEntityName executing $label")
 
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
-    propertyOverrides.foreach { x => logger.debug(s"override $x") }
+    //propertyOverrides.foreach { x => logger.debug(s"override $x") }
 
     // update properties of all entities
     val propertyOverridesPerEntity = propertyOverrides.groupBy(_.entityName)
     val updatedEntityMap =
-      // old entity map
+    // old entity map
       immutableEntityManager.entityMap ++
-      // overridden by the updated entities
-      propertyOverridesPerEntity.map { case (entityName, propertyOverrideSeq) =>
-      val entity = immutableEntityManager.entityMap.get(entityName).get
-      (entityName,
-        ImmutableEntity(
-          entity.groupId,
-          entity.uniqueId,
-          entity.properties ++ AbstractPropertyOverride.seqPropertyOverrideToMap(propertyOverrideSeq),
-          entity.ruleSet
-        ))
-    }
+        // overridden by the updated entities
+        propertyOverridesPerEntity.map { case (entityName, propertyOverrideSeq) =>
+          val entity = immutableEntityManager.entityMap.get(entityName).get
+          (entityName,
+            ImmutableEntity(
+              entity.groupId,
+              entity.uniqueId,
+              entity.properties ++ AbstractPropertyOverride.seqPropertyOverrideToMap(propertyOverrideSeq),
+              entity.ruleSet
+            ))
+        }
     // update rule counter of fromEntity
     val fromEntity = updatedEntityMap(fromEntityName)
     val fromEntityWithIncrRuleCounter = Map(fromEntityName -> fromEntity.withIncrRuleCounter)
@@ -93,12 +93,13 @@ case class PlusPropertyOverride(entityResolver: EntityResolver,
   }
 }
 
-case class MaxClampedPlusPropertyOverride(entityResolver: EntityResolver,
-                                          entityName: String,
-                                          propertyName: String,
-                                          addValue: Long,
-                                          maxValue: Long
-                                       ) extends AbstractPropertyOverride {
+case class ClampedPlusPropertyOverride(entityResolver: EntityResolver,
+                                       entityName: String,
+                                       propertyName: String,
+                                       addValue: Long,
+                                       maxValue: Long
+                                      ) extends AbstractPropertyOverride {
+  require(addValue > 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
   lazy val newValue: Long = if (oldValue > maxValue - addValue) {
     maxValue
@@ -107,7 +108,26 @@ case class MaxClampedPlusPropertyOverride(entityResolver: EntityResolver,
   }
 
   override def toString: String = {
-    s"MaxClampedPlusPropertyOverride(enNm: $entityName, prNm: $propertyName, av: $addValue, mv: $maxValue, nv: $newValue)"
+    s"ClampedPlusPropertyOverride(enNm: $entityName, prNm: $propertyName, av: $addValue, mv: $maxValue, nv: $newValue)"
+  }
+}
+
+case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
+                                        entityName: String,
+                                        propertyName: String,
+                                        minusValue: Long,
+                                        minValue: Long
+                                       ) extends AbstractPropertyOverride {
+  require(minusValue > 0)
+  lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
+  lazy val newValue: Long = if (oldValue < minValue + minusValue) {
+    minValue
+  } else {
+    oldValue - minusValue
+  }
+
+  override def toString: String = {
+    s"ClampedMinusPropertyOverride(enNm: $entityName, prNm: $propertyName, minusv: $minusValue, minv: $minValue, nv: $newValue)"
   }
 }
 

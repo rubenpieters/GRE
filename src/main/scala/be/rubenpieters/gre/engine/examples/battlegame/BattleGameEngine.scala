@@ -30,16 +30,34 @@ class EquipWeaponRule(weapon: Weapon) extends DefaultRule {
 class AttackWithWeaponRule(targetId: String) extends DefaultRule {
   override def label = "ATTACK_WPN"
 
-  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
-    // TODO: need to check if weapon fatigue is == 0, to actually be able to swing weapon
-    val weaponMinAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MIN_ATK")
-    val weaponMaxAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MAX_ATK")
-    val weaponFatigueTurns = entityResolver.getEntityProperty(fromEntityId, "WEAPON_FATIGUE_TURNS")
-    // TODO: use a randomLongFromTo method
-    val weaponAtkValue = RngUtils.randomIntFromTo(weaponMinAtk.toInt, weaponMaxAtk.toInt, ruleEngineParameters.rng).toLong
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
+                               ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    val currentFatigueTurns = entityResolver.getEntityProperty(fromEntityId, "FATIGUE_TURNS")
+    if (currentFatigueTurns == 0) {
+      // Fatigue Turns is zero -> able to attack
+      val weaponMinAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MIN_ATK")
+      val weaponMaxAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MAX_ATK")
+      val weaponFatigueTurns = entityResolver.getEntityProperty(fromEntityId, "WEAPON_FATIGUE_TURNS")
+      // TODO: use a randomLongFromTo method
+      val weaponAtkValue = RngUtils.randomIntFromTo(weaponMinAtk.toInt, weaponMaxAtk.toInt, ruleEngineParameters.rng).toLong
+      Seq(
+        PlusPropertyOverride(entityResolver, targetId, "HP", - weaponAtkValue)
+        ,ConstantPropertyOverride(fromEntityId, "FATIGUE_TURNS", weaponFatigueTurns)
+      )
+    } else {
+      // Fatigue Turns is not zero -> fumble attack, nothing happens
+      Seq()
+    }
+  }
+}
+
+class RegenFatigueRule extends DefaultRule {
+  override def label = "REGEN_FATIGUE"
+
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
+                               ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     Seq(
-      PlusPropertyOverride(entityResolver, targetId, "HP", - weaponAtkValue)
-      ,ConstantPropertyOverride(fromEntityId, "FATIGUE_TURNS", weaponFatigueTurns)
+      ClampedMinusPropertyOverride(entityResolver, fromEntityId, "FATIGUE_TURNS", 1, 0)
     )
   }
 }
@@ -49,7 +67,7 @@ class HealRule(amt: Long) extends DefaultRule {
 
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     Seq(
-      MaxClampedPlusPropertyOverride(entityResolver, fromEntityId, "HP", amt, entityResolver.getEntityProperty(fromEntityId, "MAXHP"))
+      ClampedPlusPropertyOverride(entityResolver, fromEntityId, "HP", amt, entityResolver.getEntityProperty(fromEntityId, "MAXHP"))
     )
   }
 }

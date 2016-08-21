@@ -50,8 +50,12 @@ class EngineRunner(
   }
 
   def runUntilEndConditionReached() = {
-    while (! endConditionReached) {
+    // TODO: create a custom way to stop infinite loops/really long runs (sudden death activation after certain point?)
+    val maxIterations = 1000
+    var i = 0
+    while (i <= maxIterations && ! endConditionReached) {
       runStep()
+      i += 0
     }
   }
 
