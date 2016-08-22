@@ -14,4 +14,20 @@ object MathUtils {
   def addOneWithWraparound(value: Int, wrapAroundValue: Int, resetValue: Int = 0): Int = {
     addWithWraparound(value, 1, wrapAroundValue, resetValue)
   }
+
+  def clampedPlus(oldValue: Long, addValue: Long, maxValue: Long): Long = {
+    if (oldValue > maxValue - addValue) {
+      maxValue
+    } else {
+      oldValue + addValue
+    }
+  }
+
+  def clampedMinus(oldValue: Long, minusValue: Long, minValue: Long): Long = {
+    if (oldValue < minValue + minusValue) {
+      minValue
+    } else {
+      oldValue - minusValue
+    }
+  }
 }

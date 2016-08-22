@@ -3,6 +3,7 @@ package be.rubenpieters.gre.rules
 import java.util.UUID
 
 import be.rubenpieters.gre.entity.{EntityResolver, ImmutableEntity, ImmutableEntityManager}
+import be.rubenpieters.gre.utils.MathUtils
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -101,11 +102,7 @@ case class ClampedPlusPropertyOverride(entityResolver: EntityResolver,
                                       ) extends AbstractPropertyOverride {
   require(addValue > 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
-  lazy val newValue: Long = if (oldValue > maxValue - addValue) {
-    maxValue
-  } else {
-    oldValue + addValue
-  }
+  lazy val newValue: Long = MathUtils.clampedPlus(oldValue, addValue, maxValue)
 
   override def toString: String = {
     s"ClampedPlusPropertyOverride(enNm: $entityName, prNm: $propertyName, av: $addValue, mv: $maxValue, nv: $newValue)"
@@ -120,11 +117,7 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
                                        ) extends AbstractPropertyOverride {
   require(minusValue > 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
-  lazy val newValue: Long = if (oldValue < minValue + minusValue) {
-    minValue
-  } else {
-    oldValue - minusValue
-  }
+  lazy val newValue: Long = MathUtils.clampedMinus(oldValue, minusValue, minValue)
 
   override def toString: String = {
     s"ClampedMinusPropertyOverride(enNm: $entityName, prNm: $propertyName, minusv: $minusValue, minv: $minValue, nv: $newValue)"
