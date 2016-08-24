@@ -67,6 +67,7 @@ class SwingWeaponRule(targetId: String) extends OverrideCreator {
                                ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     val weaponMinAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MIN_ATK")
     val weaponMaxAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MAX_ATK")
+    val weaponResourceCost = entityResolver.getEntityProperty(fromEntityId, "WEAPON_FATIGUE_TURNS")
     val weaponDamageType = entityResolver.getEntityProperty(fromEntityId, "WEAPON_DAMAGE_TYPE")
     val damageResist = entityResolver.getEntityProperty(targetId, "DAMAGE_RESIST_" + weaponDamageType)
     // TODO: use a randomLongFromTo method
@@ -74,6 +75,7 @@ class SwingWeaponRule(targetId: String) extends OverrideCreator {
     val weaponAtkValueAfterResist = MathUtils.clampedMinus(weaponAtkValue, damageResist, 0)
     Seq(
       PlusPropertyOverride(entityResolver, targetId, "HP", - weaponAtkValueAfterResist)
+      ,ClampedMinusPropertyOverride(entityResolver, fromEntityId, "RESOURCE_1", weaponResourceCost, 0)
     )
   }
 }

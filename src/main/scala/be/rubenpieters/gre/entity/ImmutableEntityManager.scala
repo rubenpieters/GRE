@@ -15,9 +15,10 @@ case class ImmutableEntityManager(
   extends EntityResolver {
   require(currentEntityId < entityMap.size)
 
-  lazy val nextActiveRule = entityMap.get(entityIdSequence(currentEntityId)).get.activeRule
-  lazy val nextRule = entityMap.get(entityIdSequence(currentEntityId)).get.activeAppliedRule
-  lazy val nextState = applyRule(nextRule)
+  val currentEntity = entityMap(entityIdSequence(currentEntityId))
+  lazy val nextActiveRule = currentEntity.activeRule
+  lazy val nextRule = currentEntity.activeAppliedRule
+  lazy val nextState = applyRuleAndAdvanceState(nextRule)
   lazy val nextEntityId = MathUtils.addOneWithWraparound(currentEntityId, entityIdSequence.size)
 
   def getEntityByName(entityName: String): ImmutableEntity = {
@@ -28,8 +29,30 @@ case class ImmutableEntityManager(
     getEntityByName(entityName).getPropertyByName(propertyName)
   }
 
-  def applyRule(rule: (ImmutableEntityManager, RuleEngineParameters) => ImmutableEntityManager): ImmutableEntityManager = {
-    rule.apply(this, ruleEngineParameters)
+  def applyRule(rule: (ImmutableEntityManager, RuleEngineParameters) => Map[String, ImmutableEntity]): ImmutableEntityManager = {
+    val updatedEntityMap = rule.apply(this, ruleEngineParameters)
+
+    ImmutableEntityManager(
+      updatedEntityMap,
+      entityIdSequence,
+      currentEntityId,
+      ruleEngineParameters
+    )
+  }
+
+  def applyRuleAndAdvanceState(rule: (ImmutableEntityManager, RuleEngineParameters) => Map[String, ImmutableEntity]): ImmutableEntityManager = {
+    // update rule counter of fromEntity
+    val fromEntityName = currentEntity.uniqueId
+    val fromEntityWithIncrRuleCounter = Map(fromEntityName -> currentEntity.withIncrRuleCounter)
+
+    val updatedEntityMap = rule.apply(this, ruleEngineParameters) ++ fromEntityWithIncrRuleCounter
+
+    ImmutableEntityManager(
+      updatedEntityMap,
+      entityIdSequence,
+      nextEntityId,
+      ruleEngineParameters
+    )
   }
 }
 

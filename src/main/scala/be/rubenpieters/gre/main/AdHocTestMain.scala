@@ -57,6 +57,16 @@ object AdHocTestMain extends App {
     ,Set(ZeroHpEndCondition)
   )
 
+  runner.runStep()
+  runner.runStep()
+  runner.runStep()
+  runner.runStep()
+  runner.runStep()
+  runner.runStep()
+  printableHistory(runner).foreach(println)
+
+  System.exit(1)
+
   runner.runUntilEndConditionReached()
 
   printableHistory(runner).foreach(println)

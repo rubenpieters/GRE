@@ -15,7 +15,9 @@ abstract class AbstractRule {
   val logger = Logger(LoggerFactory.getLogger("SingleRun"))
   def label: String
 
-  def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager, ruleEngineParameters: RuleEngineParameters) = {
+  def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager,
+                                    ruleEngineParameters: RuleEngineParameters)
+  : Map[String, ImmutableEntity] = {
     logger.debug(s"$fromEntityName executing $label")
 
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
@@ -37,15 +39,8 @@ abstract class AbstractRule {
               entity.ruleSet
             ))
         }
-    // update rule counter of fromEntity
-    val fromEntity = updatedEntityMap(fromEntityName)
-    val fromEntityWithIncrRuleCounter = Map(fromEntityName -> fromEntity.withIncrRuleCounter)
 
-    ImmutableEntityManager(updatedEntityMap ++ fromEntityWithIncrRuleCounter,
-      immutableEntityManager.entityIdSequence,
-      immutableEntityManager.nextEntityId,
-      immutableEntityManager.ruleEngineParameters
-    )
+    updatedEntityMap
   }
 }
 
@@ -117,7 +112,7 @@ case class ClampedPlusPropertyOverride(entityResolver: EntityResolver,
                                        addValue: Long,
                                        maxValue: Long
                                       ) extends AbstractPropertyOverride {
-  require(addValue > 0)
+  require(addValue >= 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
   lazy val newValue: Long = MathUtils.clampedPlus(oldValue, addValue, maxValue)
 
@@ -132,7 +127,7 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
                                         minusValue: Long,
                                         minValue: Long
                                        ) extends AbstractPropertyOverride {
-  require(minusValue > 0)
+  require(minusValue >= 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
   lazy val newValue: Long = MathUtils.clampedMinus(oldValue, minusValue, minValue)
 
