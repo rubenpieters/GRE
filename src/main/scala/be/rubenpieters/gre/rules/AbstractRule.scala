@@ -49,11 +49,11 @@ abstract class AbstractRule {
 }
 
 case class IfElseFumbleRule(
-                             ifCondition: (EntityResolver, RuleEngineParameters) => Boolean,
+                             ifCondition: (String, EntityResolver, RuleEngineParameters) => Boolean,
                              ifRule: OverrideCreator
                            ) extends DefaultRule {
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
-    if (ifCondition.apply(entityResolver, ruleEngineParameters)) {
+    if (ifCondition.apply(fromEntityId, entityResolver, ruleEngineParameters)) {
       ifRule.createOverrides(fromEntityId, entityResolver, ruleEngineParameters)
     } else {
       Seq()

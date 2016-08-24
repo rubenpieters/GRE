@@ -49,17 +49,17 @@ object AdHocTestMain extends App {
 
     val entity1 = ImmutableEntity("G1", "E1", entityBasicProperties,
       RuleSet.initWithRepresentationAmount(Seq(
-        (2, new AttackWithWeaponRule("E2"))
+        (1, new GenerateResource(1, 1))
         ,(1, new EquipWeaponRule(Weapon(5, 10, 0, 1)))
-        ,(1, new EquipWeaponRule(Weapon(5, 10, 0, 2)))
+        ,(1, BattleGameEngine.swingWeaponWithFumbleRule("E2"))
       )),
       Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
     )
     val entity2 = ImmutableEntity("G2", "E2", entityBasicProperties,
       RuleSet.initWithRepresentationAmount(Seq(
-        (1, new AttackWithWeaponRule("E1"))
-        ,(1, new EquipWeaponRule(Weapon(5, 10, 0, 1)))
-        ,(1, new RaiseResist(1, 2))
+        (4, new GenerateResource(1, 1))
+        ,(1, new EquipWeaponRule(Weapon(10, 20, 0, 4)))
+        ,(1, BattleGameEngine.swingWeaponWithFumbleRule("E1"))
       )),
       Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
     )

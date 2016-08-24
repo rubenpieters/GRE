@@ -10,6 +10,14 @@ import be.rubenpieters.gre.utils.{MathUtils, RngUtils}
 object BattleGameEngine {
   val baseWeapon = Weapon(1, 1, 0, 1)
 
+
+  def swingWeaponWithFumbleRule(targetId: String) =
+    IfElseFumbleRule((fromEntityId, entityResolver, parameters) =>
+      entityResolver.getEntityProperty(fromEntityId, "RESOURCE_1") >
+        entityResolver.getEntityProperty(fromEntityId, "WEAPON_FATIGUE_TURNS")
+      , new SwingWeaponRule(targetId)
+    )
+
 }
 
 case class Weapon(minAtk: Int, maxAtk: Int, fatigueTurns: Int, damageType: Int)
@@ -76,6 +84,22 @@ class AttackWithWeaponRule(targetId: String) extends DefaultRule {
   }
 }
 
+class SwingWeaponRule(targetId: String) extends OverrideCreator {
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
+                               ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    val weaponMinAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MIN_ATK")
+    val weaponMaxAtk = entityResolver.getEntityProperty(fromEntityId, "WEAPON_MAX_ATK")
+    val weaponDamageType = entityResolver.getEntityProperty(fromEntityId, "WEAPON_DAMAGE_TYPE")
+    val damageResist = entityResolver.getEntityProperty(targetId, "DAMAGE_RESIST_" + weaponDamageType)
+    // TODO: use a randomLongFromTo method
+    val weaponAtkValue = RngUtils.randomIntFromTo(weaponMinAtk.toInt, weaponMaxAtk.toInt, ruleEngineParameters.rng).toLong
+    val weaponAtkValueAfterResist = MathUtils.clampedMinus(weaponAtkValue, damageResist, 0)
+    Seq(
+      PlusPropertyOverride(entityResolver, targetId, "HP", - weaponAtkValueAfterResist)
+    )
+  }
+}
+
 class RegenFatigueRule extends DefaultRule {
   override def label = "REGEN_FATIGUE"
 
@@ -107,7 +131,7 @@ class RaiseResist(resistType: Long, amt: Long) extends DefaultRule {
   }
 }
 
-class generateResource(resourceType: Long, amt: Long) extends DefaultRule {
+class GenerateResource(resourceType: Long, amt: Long) extends DefaultRule {
   override def label = "GEN_RES_" + resourceType
 
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
