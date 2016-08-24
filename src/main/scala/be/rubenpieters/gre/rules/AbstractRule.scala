@@ -48,6 +48,19 @@ abstract class AbstractRule {
   }
 }
 
+case class IfElseFumbleRule(
+                             ifCondition: (EntityResolver, RuleEngineParameters) => Boolean,
+                             ifRule: OverrideCreator
+                           ) extends DefaultRule {
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    if (ifCondition.apply(entityResolver, ruleEngineParameters)) {
+      ifRule.createOverrides(fromEntityId, entityResolver, ruleEngineParameters)
+    } else {
+      Seq()
+    }
+  }
+}
+
 trait OverrideCreator {
   def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride]
 }
@@ -123,6 +136,5 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
     s"ClampedMinusPropertyOverride(enNm: $entityName, prNm: $propertyName, minusv: $minusValue, minv: $minValue, nv: $newValue)"
   }
 }
-
 
 abstract class DefaultRule extends AbstractRule with OverrideCreator with Costed with UuidLabeled

@@ -98,11 +98,21 @@ class HealRule(amt: Long) extends DefaultRule {
 }
 
 class RaiseResist(resistType: Long, amt: Long) extends DefaultRule {
-  override def label = "HEAL"
+  override def label = "RAISE_RESIST_" + resistType
 
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     Seq(
       PlusPropertyOverride(entityResolver, fromEntityId, "DAMAGE_RESIST_" + resistType, amt)
+    )
+  }
+}
+
+class generateResource(resourceType: Long, amt: Long) extends DefaultRule {
+  override def label = "GEN_RES_" + resourceType
+
+  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    Seq(
+      PlusPropertyOverride(entityResolver, fromEntityId, "RESOURCE_" + resourceType, amt)
     )
   }
 }

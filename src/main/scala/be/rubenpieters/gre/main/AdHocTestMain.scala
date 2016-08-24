@@ -22,6 +22,10 @@ object AdHocTestMain extends App {
       ,"DAMAGE_RESIST_2" -> 0
       ,"DAMAGE_RESIST_3" -> 0
       ,"DAMAGE_RESIST_4" -> 0
+      ,"RESOURCE_1" -> 0
+      ,"RESOURCE_2" -> 0
+      ,"RESOURCE_3" -> 0
+      ,"RESOURCE_4" -> 0
     )
 
   // 50-50 setup 1
