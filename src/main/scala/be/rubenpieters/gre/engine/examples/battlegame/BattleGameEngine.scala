@@ -1,5 +1,6 @@
 package be.rubenpieters.gre.engine.examples.battlegame
 
+import be.rubenpieters.gre.engine.EngineRunner
 import be.rubenpieters.gre.entity.EntityResolver
 import be.rubenpieters.gre.rules._
 import be.rubenpieters.gre.utils.{MathUtils, RngUtils}
@@ -8,16 +9,6 @@ import be.rubenpieters.gre.utils.{MathUtils, RngUtils}
   * Created by rpieters on 7/08/2016.
   */
 object BattleGameEngine {
-  val baseWeapon = Weapon(1, 1, 0, 1)
-
-
-  def swingWeaponWithFumbleRule(targetId: String) =
-    IfElseFumbleRule((fromEntityId, entityResolver, parameters) =>
-      entityResolver.getEntityProperty(fromEntityId, "RESOURCE_1") >
-        entityResolver.getEntityProperty(fromEntityId, "WEAPON_FATIGUE_TURNS")
-      , new SwingWeaponRule(targetId)
-    )
-
 }
 
 case class Weapon(minAtk: Int, maxAtk: Int, fatigueTurns: Int, damageType: Int)
@@ -30,29 +21,16 @@ object DamageType extends Enumeration {
   val DT4 = Value("DT4")
 }
 
-class EquipWeaponRule(weapon: Weapon) extends DefaultRule {
-  override def label = "EQUIP_WPN"
-
-  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
-    Seq(
-      ConstantPropertyOverride(fromEntityId, "WEAPON_MIN_ATK", weapon.minAtk)
-      ,ConstantPropertyOverride(fromEntityId, "WEAPON_MAX_ATK", weapon.maxAtk)
-      ,ConstantPropertyOverride(fromEntityId, "WEAPON_FATIGUE_TURNS", weapon.fatigueTurns)
-      ,ConstantPropertyOverride(fromEntityId, "WEAPON_DAMAGE_TYPE", weapon.damageType)
-    )
-  }
-}
-
 class DisarmRule(targetId: String) extends DefaultRule {
   override def label = "DISARM"
 
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
                                ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     Seq(
-      ConstantPropertyOverride(targetId, "WEAPON_MIN_ATK", BattleGameEngine.baseWeapon.minAtk)
-      ,ConstantPropertyOverride(targetId, "WEAPON_MAX_ATK", BattleGameEngine.baseWeapon.maxAtk)
-      ,ConstantPropertyOverride(targetId, "WEAPON_FATIGUE_TURNS", BattleGameEngine.baseWeapon.fatigueTurns)
-      ,ConstantPropertyOverride(targetId, "WEAPON_DAMAGE_TYPE", BattleGameEngine.baseWeapon.damageType)
+      ConstantPropertyOverride(targetId, "WEAPON_MIN_ATK", BattleGameGeneralRuleSet.baseWeapon.minAtk)
+      ,ConstantPropertyOverride(targetId, "WEAPON_MAX_ATK", BattleGameGeneralRuleSet.baseWeapon.maxAtk)
+      ,ConstantPropertyOverride(targetId, "WEAPON_FATIGUE_TURNS", BattleGameGeneralRuleSet.baseWeapon.fatigueTurns)
+      ,ConstantPropertyOverride(targetId, "WEAPON_DAMAGE_TYPE", BattleGameGeneralRuleSet.baseWeapon.damageType)
     )
   }
 }
@@ -127,16 +105,6 @@ class RaiseResist(resistType: Long, amt: Long) extends DefaultRule {
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     Seq(
       PlusPropertyOverride(entityResolver, fromEntityId, "DAMAGE_RESIST_" + resistType, amt)
-    )
-  }
-}
-
-class GenerateResource(resourceType: Long, amt: Long) extends DefaultRule {
-  override def label = "GEN_RES_" + resourceType
-
-  override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
-    Seq(
-      PlusPropertyOverride(entityResolver, fromEntityId, "RESOURCE_" + resourceType, amt)
     )
   }
 }

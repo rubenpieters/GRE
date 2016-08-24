@@ -13,56 +13,42 @@ import be.rubenpieters.gre.simulation.SimulationRunner
   */
 
 object AdHocTestMain extends App {
-  val entityBasicProperties: Map[String, Long] =
-    Map(
-      "HP" -> 100
-      ,"MAXHP" -> 100
-      ,"FATIGUE_TURNS" -> 0
-      ,"DAMAGE_RESIST_1" -> 0
-      ,"DAMAGE_RESIST_2" -> 0
-      ,"DAMAGE_RESIST_3" -> 0
-      ,"DAMAGE_RESIST_4" -> 0
-      ,"RESOURCE_1" -> 0
-      ,"RESOURCE_2" -> 0
-      ,"RESOURCE_3" -> 0
-      ,"RESOURCE_4" -> 0
-    )
 
   // 50-50 setup 1
-//  val entity1 = ImmutableEntity("G1", "E1", entityBasicProperties,
-//    RuleSet.initWithRepresentationAmount(Seq(
-//      (10, new AttackWithWeaponRule("E2"))
-//      ,(1, new EquipWeaponRule(Weapon(6, 12, 1, 1)))
-//      ,(10, new RegenFatigueRule())
-//      ,(18, new DisarmRule("E2"))
-//    )),
-//    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
-//  )
-//  val entity2 = ImmutableEntity("G2", "E2", entityBasicProperties,
-//    RuleSet.initWithRepresentationAmount(Seq(
-//      (2, new AttackWithWeaponRule("E1"))
-//      ,(1, new EquipWeaponRule(Weapon(20, 40, 4, 1)))
-//      ,(5, new RegenFatigueRule())
-//    )),
-//    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
-//  )
+  //  val entity1 = ImmutableEntity("G1", "E1", entityBasicProperties,
+  //    RuleSet.initWithRepresentationAmount(Seq(
+  //      (10, new AttackWithWeaponRule("E2"))
+  //      ,(1, new EquipWeaponRule(Weapon(6, 12, 1, 1)))
+  //      ,(10, new RegenFatigueRule())
+  //      ,(18, new DisarmRule("E2"))
+  //    )),
+  //    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
+  //  )
+  //  val entity2 = ImmutableEntity("G2", "E2", entityBasicProperties,
+  //    RuleSet.initWithRepresentationAmount(Seq(
+  //      (2, new AttackWithWeaponRule("E1"))
+  //      ,(1, new EquipWeaponRule(Weapon(20, 40, 4, 1)))
+  //      ,(5, new RegenFatigueRule())
+  //    )),
+  //    Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
+  //  )
 
-    val entity1 = ImmutableEntity("G1", "E1", entityBasicProperties,
-      RuleSet.initWithRepresentationAmount(Seq(
-        (1, new GenerateResource(1, 1))
-        ,(1, new EquipWeaponRule(Weapon(5, 10, 0, 1)))
-        ,(1, BattleGameEngine.swingWeaponWithFumbleRule("E2"))
-      )),
-      Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
-    )
-    val entity2 = ImmutableEntity("G2", "E2", entityBasicProperties,
-      RuleSet.initWithRepresentationAmount(Seq(
-        (4, new GenerateResource(1, 1))
-        ,(1, new EquipWeaponRule(Weapon(10, 20, 0, 4)))
-        ,(1, BattleGameEngine.swingWeaponWithFumbleRule("E1"))
-      )),
-      Seq(new EquipWeaponRule(BattleGameEngine.baseWeapon))
-    )
+  val entity1 = ImmutableEntity("G1", "E1", BattleGameGeneralRuleSet.entityBasicProperties,
+    RuleSet.initWithRepresentationAmount(Seq(
+      (3 , new BattleGameGeneralRuleSet.GenerateResource(1, 1))
+      ,(1, BattleGameRuleSet1.equipRuleSet1Weapon)
+      ,(1, BattleGameGeneralRuleSet.swingWeaponWithFumbleRule("E2"))
+    )),
+    Seq(new BattleGameGeneralRuleSet.EquipWeaponRule(BattleGameGeneralRuleSet.baseWeapon))
+  )
+  val entity2 = ImmutableEntity("G2", "E2", BattleGameGeneralRuleSet.entityBasicProperties,
+    RuleSet.initWithRepresentationAmount(Seq(
+      (1, new BattleGameGeneralRuleSet.GenerateResource(1, 1))
+      ,(1, BattleGameRuleSet2.equipRuleSet2Weapon)
+      ,(1, BattleGameGeneralRuleSet.swingWeaponWithFumbleRule("E1"))
+    )),
+    Seq(new BattleGameGeneralRuleSet.EquipWeaponRule(BattleGameGeneralRuleSet.baseWeapon))
+  )
 
 
   val runner = new EngineRunner(
@@ -73,11 +59,7 @@ object AdHocTestMain extends App {
 
   runner.runUntilEndConditionReached()
 
-  val property = "HP"
-  val e1Hp = runner.entityManagerHistory.map{ x => x.getEntityProperty("E1", property)}
-  val e2Hp = runner.entityManagerHistory.map{ x => x.getEntityProperty("E2", property)}
-
-  e1Hp.zip(e2Hp).map{ case (a,b) => List(a,b).mkString("\t")}.foreach(println)
+  printableHistory(runner).foreach(println)
 
   val simulation = new SimulationRunner[(Long, Long)](
     Seq(entity1, entity2)
@@ -91,4 +73,20 @@ object AdHocTestMain extends App {
   println(simulationResults.count{ x => x._1 <= 0})
   println ("E2 losses")
   println(simulationResults.count{ x => x._2 <= 0})
+
+
+  def printableHistory(engineRunner: EngineRunner) = {
+    engineRunner.entityManagerHistory.map { entityManager =>
+      (
+        entityManager.nextEntityId + 1
+        ,entityManager.nextActiveRule.label
+        ,entityManager.getEntityProperty("E1", "HP")
+        ,entityManager.getEntityProperty("E1", "RESOURCE_1")
+        ,entityManager.getEntityProperty("E1", "RESOURCE_2")
+        ,entityManager.getEntityProperty("E2", "HP")
+        ,entityManager.getEntityProperty("E2", "RESOURCE_1")
+        ,entityManager.getEntityProperty("E2", "RESOURCE_2")
+        )
+    }
+  }
 }

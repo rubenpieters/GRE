@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 abstract class AbstractRule {
   this: OverrideCreator with Costed with Labeled =>
   val logger = Logger(LoggerFactory.getLogger("SingleRun"))
+  def label: String
 
   def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager, ruleEngineParameters: RuleEngineParameters) = {
     logger.debug(s"$fromEntityName executing $label")
@@ -50,8 +51,11 @@ abstract class AbstractRule {
 
 case class IfElseFumbleRule(
                              ifCondition: (String, EntityResolver, RuleEngineParameters) => Boolean,
-                             ifRule: OverrideCreator
+                             ifRule: OverrideCreator,
+                             override val label: String
                            ) extends DefaultRule {
+
+
   override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
     if (ifCondition.apply(fromEntityId, entityResolver, ruleEngineParameters)) {
       ifRule.createOverrides(fromEntityId, entityResolver, ruleEngineParameters)
