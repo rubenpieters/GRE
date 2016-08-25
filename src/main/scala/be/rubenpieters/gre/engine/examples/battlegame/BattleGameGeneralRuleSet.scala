@@ -56,16 +56,63 @@ object BattleGameGeneralRuleSet {
   }
 }
 
+// sword, tanky type
 object BattleGameRuleSet1 {
   val ruleSet1Weapon = Weapon(5, 10, 3, 1)
 
   val equipRuleSet1Weapon = new EquipWeaponRule(ruleSet1Weapon)
 
+  // raise shield: increase defense/block attack
+  // parry: next turn: riposte attack / if no attack self stun
+  // bash lower defense next turn, decrease enemy resources
 }
 
+// dagger rogue type
 object BattleGameRuleSet2 {
   val ruleSet2Weapon = Weapon(2, 4, 1, 2)
 
   val equipRuleSet2Weapon = new EquipWeaponRule(ruleSet2Weapon)
+
+  // disarm
+  // poison weapon, attacks have chance to deal extra damage
+  // dodge: chance to dodge attack
+
+}
+
+// dagger witch doctor/hexer type
+object BattleGameRuleSet3 {
+  val ruleSet3Weapon = Weapon(3, 8, 2, 3)
+
+  val equipRuleSet3Weapon = new EquipWeaponRule(ruleSet3Weapon)
+
+  // dot
+  // weaken damage
+  // drain life
+  // infested weapon: attacks have chance to infest (infest slows hp regen and deals low dot dmg)
+  // detonate infestation: deal damage for all infestations
+}
+
+// mace, clericy type
+object BattleGameRuleSet4 {
+  val ruleSet4Weapon = Weapon(7, 14, 4, 4)
+
+  val equipRuleSet4Weapon = new EquipWeaponRule(ruleSet4Weapon)
+
+  // heal
+  // buff damage
+  // cleanse
+  // meditate, increase resource generation, slightly increase dres/hp
+
+}
+
+// heavy sword, agressive soldier type
+object BattleGameRuleSet5 {
+  val ruleSet5Weapon = Weapon(10, 20, 5, 5)
+
+  val equipRuleSet5Weapon = new EquipWeaponRule(ruleSet5Weapon)
+
+  // stun, enemy skips rule
+  // heavy attack, huge damage, skip next rule
+  // enrage, lower health/res, increase atk
 
 }
