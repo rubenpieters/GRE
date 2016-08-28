@@ -58,7 +58,32 @@ case class ImmutableEntityManager(
     )
   }
 
-  // TODO: create apply global effects method, which applies all rules in the global effects and decreases the counters
+  def applyEffects(): ImmutableEntityManager = {
+    // TODO: create effect class and have it provide a method which gives
+    // 1- updated entities
+    // 2- created effects
+    // 3- its next effect state
+    val nextEffects = globalEffects.effects.flatMap { case (fromEntityId, effectRule, endRule, effectState) =>
+      effectState match {
+        case EffectFinished =>
+          val updatedEntities = endRule.apply(fromEntityId)(this, ruleEngineParameters)
+          None
+        case EffectRunning(counter) =>
+          val updatedEntities = effectRule.apply(fromEntityId)(this, ruleEngineParameters)
+          Some((fromEntityId, effectRule, endRule, EffectRunning(counter).next))
+      }
+    }
+
+    val nextGlobalEffects = new GlobalEffects(nextEffects)
+
+    ImmutableEntityManager(
+      entityMap,
+      entityIdSequence,
+      currentEntityId,
+      ruleEngineParameters,
+      nextGlobalEffects
+    )
+  }
 }
 
 object ImmutableEntityManager {

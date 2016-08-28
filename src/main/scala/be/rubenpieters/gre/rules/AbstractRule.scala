@@ -17,11 +17,8 @@ abstract class AbstractRule {
 
   def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager,
                                     ruleEngineParameters: RuleEngineParameters)
-  : (Map[String, ImmutableEntity], GlobalEffectEntityLike) = {
+  : (Map[String, ImmutableEntity], Seq[Effect]) = {
     logger.debug(s"$fromEntityName executing $label")
-
-    // apply effects
-
 
     // apply overrides
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
