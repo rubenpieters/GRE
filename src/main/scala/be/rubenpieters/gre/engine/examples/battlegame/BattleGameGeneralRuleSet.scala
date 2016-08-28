@@ -1,7 +1,7 @@
 package be.rubenpieters.gre.engine.examples.battlegame
 
 import be.rubenpieters.gre.engine.examples.battlegame.BattleGameGeneralRuleSet.EquipWeaponRule
-import be.rubenpieters.gre.entity.EntityResolver
+import be.rubenpieters.gre.entity.{Effect, EntityResolver}
 import be.rubenpieters.gre.rules._
 
 /**
@@ -16,11 +16,15 @@ object BattleGameGeneralRuleSet {
       ,"DAMAGE_RESIST_2" -> 0
       ,"DAMAGE_RESIST_3" -> 0
       ,"DAMAGE_RESIST_4" -> 0
+      ,"DAMAGE_RESIST_5" -> 0
       ,"RESOURCE_1" -> 0
       ,"RESOURCE_2" -> 0
       ,"RESOURCE_3" -> 0
       ,"RESOURCE_4" -> 0
+      ,"RESOURCE_5" -> 0
     )
+
+  val allDamageTypes = (1 to 5 ).map { x => s"DAMAGE_RESIST_$x"}
 
   val baseWeapon = Weapon(1, 1, 0, 1)
 
@@ -62,6 +66,34 @@ object BattleGameRuleSet1 {
 
   val equipRuleSet1Weapon = new EquipWeaponRule(ruleSet1Weapon)
 
+  class RaiseShieldRule() extends DefaultRule {
+    override def label = "RS1_RAISE_SHIELD"
+
+    override def createEffects(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Effect] = {
+      Seq((fromEntityId, new RaiseShieldEffectRule(), new RaiseShieldEndRule(), 1))
+    }
+
+    override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+      BattleGameGeneralRuleSet.allDamageTypes.map { damageType =>
+        PlusPropertyOverride(entityResolver, fromEntityId, damageType, 5)
+      }
+    }
+
+    class RaiseShieldEffectRule extends DefaultRule {
+      override def label = "RS1_RAISE_SHIELD_EFFECT"
+    }
+
+    class RaiseShieldEndRule extends DefaultRule {
+      override def label = "RS1_RAISE_SHIELD_END"
+
+      override def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+        BattleGameGeneralRuleSet.allDamageTypes.map { damageType =>
+          PlusPropertyOverride(entityResolver, fromEntityId, damageType, 5)
+        }
+      }
+    }
+  }
+
   // raise shield: increase defense/block attack
   // parry: next turn: riposte attack / if no attack self stun
   // bash lower defense next turn, decrease enemy resources
@@ -72,6 +104,20 @@ object BattleGameRuleSet2 {
   val ruleSet2Weapon = Weapon(2, 4, 1, 2)
 
   val equipRuleSet2Weapon = new EquipWeaponRule(ruleSet2Weapon)
+
+  class DisarmRule(targetId: String) extends DefaultRule {
+    override def label = "RS2_DISARM"
+
+    override def createOverrides(fromEntityId: String, entityResolver: EntityResolver,
+                                 ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+      Seq(
+        ConstantPropertyOverride(targetId, "WEAPON_MIN_ATK", BattleGameGeneralRuleSet.baseWeapon.minAtk)
+        ,ConstantPropertyOverride(targetId, "WEAPON_MAX_ATK", BattleGameGeneralRuleSet.baseWeapon.maxAtk)
+        ,ConstantPropertyOverride(targetId, "WEAPON_FATIGUE_TURNS", BattleGameGeneralRuleSet.baseWeapon.fatigueTurns)
+        ,ConstantPropertyOverride(targetId, "WEAPON_DAMAGE_TYPE", BattleGameGeneralRuleSet.baseWeapon.damageType)
+      )
+    }
+  }
 
   // disarm
   // poison weapon, attacks have chance to deal extra damage

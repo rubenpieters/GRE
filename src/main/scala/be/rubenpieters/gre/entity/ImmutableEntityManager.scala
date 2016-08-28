@@ -10,7 +10,8 @@ case class ImmutableEntityManager(
                                    entityMap: Map[String, ImmutableEntity],
                                    entityIdSequence: Seq[String],
                                    currentEntityId: Int,
-                                   ruleEngineParameters: RuleEngineParameters
+                                   ruleEngineParameters: RuleEngineParameters,
+                                   globalEffects: GlobalEffectEntityLike
                                  )
   extends EntityResolver {
   require(currentEntityId < entityMap.size)
@@ -30,13 +31,14 @@ case class ImmutableEntityManager(
   }
 
   def applyRule(rule: (ImmutableEntityManager, RuleEngineParameters) => Map[String, ImmutableEntity]): ImmutableEntityManager = {
-    val updatedEntityMap = rule.apply(this, ruleEngineParameters)
+    val (updatedEntityMap, updatedGlobalEffects) = rule.apply(this, ruleEngineParameters)
 
     ImmutableEntityManager(
       updatedEntityMap,
       entityIdSequence,
       currentEntityId,
-      ruleEngineParameters
+      ruleEngineParameters,
+      updatedGlobalEffects
     )
   }
 
@@ -45,15 +47,18 @@ case class ImmutableEntityManager(
     val fromEntityName = currentEntity.uniqueId
     val fromEntityWithIncrRuleCounter = Map(fromEntityName -> currentEntity.withIncrRuleCounter)
 
-    val updatedEntityMap = rule.apply(this, ruleEngineParameters) ++ fromEntityWithIncrRuleCounter
+    val (updatedEntityMap, updatedGlobalEffects) = rule.apply(this, ruleEngineParameters) ++ fromEntityWithIncrRuleCounter
 
     ImmutableEntityManager(
       updatedEntityMap,
       entityIdSequence,
       nextEntityId,
-      ruleEngineParameters
+      ruleEngineParameters,
+      updatedGlobalEffects
     )
   }
+
+  // TODO: create apply global effects method, which applies all rules in the global effects and decreases the counters
 }
 
 object ImmutableEntityManager {
@@ -63,7 +68,7 @@ object ImmutableEntityManager {
       case _ =>
     }
     val entityIdSequence = entities.map{e => e.uniqueId}
-    ImmutableEntityManager(entityIdSequence.zip(entities).toMap, entityIdSequence, 0, ruleEngineParameters)
+    ImmutableEntityManager(entityIdSequence.zip(entities).toMap, entityIdSequence, 0, ruleEngineParameters, new GlobalEffects())
   }
 }
 

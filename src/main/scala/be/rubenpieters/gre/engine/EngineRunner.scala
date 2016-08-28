@@ -28,7 +28,7 @@ class EngineRunner(
 
   var endConditionReached = false
 
-  val ruleEngineParameters = RuleEngineParameters(rng)
+  val ruleEngineParameters = RuleEngineParameters.default
 
   def verifyRuleSetCosts() = {
 

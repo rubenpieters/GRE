@@ -2,7 +2,7 @@ package be.rubenpieters.gre.rules
 
 import java.util.UUID
 
-import be.rubenpieters.gre.entity.{EntityResolver, ImmutableEntity, ImmutableEntityManager}
+import be.rubenpieters.gre.entity._
 import be.rubenpieters.gre.utils.MathUtils
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -11,15 +11,19 @@ import org.slf4j.LoggerFactory
   * Created by rpieters on 14/05/2016.
   */
 abstract class AbstractRule {
-  this: OverrideCreator with Costed with Labeled =>
+  this: OverrideCreator with EffectCreator with Costed with Labeled =>
   val logger = Logger(LoggerFactory.getLogger("SingleRun"))
   def label: String
 
   def apply(fromEntityName: String)(immutableEntityManager: ImmutableEntityManager,
                                     ruleEngineParameters: RuleEngineParameters)
-  : Map[String, ImmutableEntity] = {
+  : (Map[String, ImmutableEntity], GlobalEffectEntityLike) = {
     logger.debug(s"$fromEntityName executing $label")
 
+    // apply effects
+
+
+    // apply overrides
     val propertyOverrides = createOverrides(fromEntityName, immutableEntityManager, ruleEngineParameters)
     //propertyOverrides.foreach { x => logger.debug(s"override $x") }
 
@@ -60,8 +64,16 @@ case class IfElseFumbleRule(
   }
 }
 
+trait EffectCreator {
+  def createEffects(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Effect] = {
+    Seq()
+  }
+}
+
 trait OverrideCreator {
-  def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride]
+  def createOverrides(fromEntityId: String, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[AbstractPropertyOverride] = {
+    Seq()
+  }
 }
 
 trait Costed {
@@ -106,6 +118,18 @@ case class PlusPropertyOverride(entityResolver: EntityResolver,
   }
 }
 
+case class MinusPropertyOverride(entityResolver: EntityResolver,
+                                 entityName: String,
+                                 propertyName: String,
+                                 minusValue: Long
+                                ) extends AbstractPropertyOverride {
+  lazy val newValue: Long = entityResolver.getEntityProperty(entityName, propertyName) - minusValue
+
+  override def toString: String = {
+    s"MinusPropertyOverride(enNm: $entityName, prNm: $propertyName, minusv: $minusValue, nv: $newValue)"
+  }
+}
+
 case class ClampedPlusPropertyOverride(entityResolver: EntityResolver,
                                        entityName: String,
                                        propertyName: String,
@@ -136,4 +160,4 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
   }
 }
 
-abstract class DefaultRule extends AbstractRule with OverrideCreator with Costed with UuidLabeled
+abstract class DefaultRule extends AbstractRule with OverrideCreator with EffectCreator with Costed with UuidLabeled
