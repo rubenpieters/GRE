@@ -51,9 +51,10 @@ case class Entity(
   }
 
   def applyEffects: Entity = {
+    // zip the rules with index and advance via index, attach new rules at the end of the seq
     val newThis = appliedEffects.foldLeft(this) { (accEntity, appliedEffect) =>
       val actingEntityId = appliedEffect._1
-      val effect = appliedEffect._2  
+      val effect = appliedEffect._2
 
       //applyRule(effect.effectRule, actingEntityId)
       this
