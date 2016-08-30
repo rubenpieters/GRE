@@ -1,4 +1,4 @@
-package be.rubenpieters
+package be.rubenpieters.gre
 
 import org.scalatest.{FlatSpec, Matchers}
 

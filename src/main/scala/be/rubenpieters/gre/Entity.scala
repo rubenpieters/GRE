@@ -39,9 +39,23 @@ case class Entity(
     )
   }
 
+  def addEffect(effect: Effect): Entity = {
+    this
+  }
+
+  def applyEffect(effect: Effect): Entity = {
+    this
+  }
+
   def applyRule(rule: AbstractRule, actingEntity: EntityId, ruleEngineParameters: RuleEngineParameters): Entity = {
     val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
-
+    operations.groupBy(_._1).map { case (target, operationSeq) =>
+      val targetEntity = getEntity(target)
+      val newEntity = operationSeq
+        .map(_._2)
+        .foldLeft(targetEntity)((accEntity, currentOp) => accEntity.applyOperation(currentOp))
+      (target, newEntity)
+    }
     val effects = rule.createEffects(actingEntity, this, ruleEngineParameters)
 
     this
