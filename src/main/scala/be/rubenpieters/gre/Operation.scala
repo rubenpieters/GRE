@@ -1,4 +1,4 @@
-package be.rubenpieters
+package be.rubenpieters.gre
 
 import be.rubenpieters.utils.MathUtils
 
