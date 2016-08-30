@@ -4,11 +4,25 @@ package be.rubenpieters.gre
   * Created by ruben on 29/08/2016.
   */
 case class Entity(
-                  id: EntityId
-                  ,properties: Properties = Map()
-                  ,subEntities: Map[String, Entity] = Map()
+                   id: EntityId
+                   ,properties: Properties = Map()
+                   ,subEntities: Map[String, Entity] = Map()
+                   ,appliedEffects: Seq[(String, Effect)] = Seq()
+                   ,ruleEngineParameters: RuleEngineParameters
                  ) extends Identifiable with EntityResolver {
   require(! subEntities.keys.exists(_.equals(id)))
+
+  def withNew(newProperties: Properties = properties
+              ,newSubEntities: Map[String, Entity] = subEntities
+              ,newAppliedEffects: Seq[(String, Effect)] = appliedEffects): Entity = {
+    Entity(
+      id
+      ,newProperties
+      ,newSubEntities
+      ,newAppliedEffects
+      ,ruleEngineParameters
+    )
+  }
 
   def getProperty(propertyId: String): Long = {
     properties.get(propertyId) match {
@@ -20,10 +34,15 @@ case class Entity(
   def getEntity(findId: String): Entity = {
     id.equals(findId) match {
       case true => this
-      case false => subEntities.get(findId) match {
-        case Some(e) => e
-        case None => throw new IllegalArgumentException(s"Entity $id does not contain an entity with id $findId")
-      }
+      case false =>
+        // NOTE: this sort of assumes that entity ids are globally unique, or at least within all possible scopes
+        val firstFoundEntity = subEntities.collectFirst { case (entityId, entity) =>
+          entity.getEntity(entityId)
+        }
+        firstFoundEntity match {
+          case Some(e) => e
+          case None => throw new IllegalArgumentException(s"Entity or its subEntities $id does not contain an entity with id $findId")
+        }
     }
   }
 
@@ -31,32 +50,27 @@ case class Entity(
     getEntity(entityId).getProperty(propertyId)
   }
 
-  def applyOperation(operation: Operation): Entity = {
-    Entity(
-      id
-      ,operation.newProperties(properties)
-      ,subEntities
-    )
+  def applyEffects: Entity = {
+    val newThis = appliedEffects.foldLeft(this) { (accEntity, appliedEffect) =>
+      val actingEntityId = appliedEffect._1
+      val effect = appliedEffect._2  
+
+      //applyRule(effect.effectRule, actingEntityId)
+      this
+    }
+
+    withNew(newThis.properties, newThis.subEntities, newThis.appliedEffects)
   }
 
-  def addEffect(effect: Effect): Entity = {
-    this
-  }
-
-  def applyEffect(effect: Effect): Entity = {
-    this
-  }
-
-  def applyRule(rule: AbstractRule, actingEntity: EntityId, ruleEngineParameters: RuleEngineParameters): Entity = {
+  def applyRule(rule: AbstractRule, actingEntity: EntityId): Entity = {
     val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
     operations.groupBy(_._1).map { case (target, operationSeq) =>
       val targetEntity = getEntity(target)
       val newEntity = operationSeq
         .map(_._2)
-        .foldLeft(targetEntity)((accEntity, currentOp) => accEntity.applyOperation(currentOp))
+        .foldLeft(targetEntity)((accEntity, currentOp) => currentOp.applyOperation(accEntity))
       (target, newEntity)
     }
-    val effects = rule.createEffects(actingEntity, this, ruleEngineParameters)
 
     this
   }

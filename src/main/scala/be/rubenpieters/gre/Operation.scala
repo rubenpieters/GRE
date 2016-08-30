@@ -6,20 +6,36 @@ import be.rubenpieters.utils.MathUtils
   * Created by ruben on 29/08/2016.
   */
 trait Operation {
+  def applyOperation(entity: Entity): Entity
+}
+
+trait PropertyOverrideOperation extends Operation {
   def propertyName: String
   def newValue: Long
 
-  def newProperties(oldProperties: Properties): Properties = {
-    oldProperties + (propertyName -> newValue)
+  override def applyOperation(entity: Entity): Entity = {
+    val newProperties = entity.properties + (propertyName -> newValue)
+    entity.withNew(newProperties = newProperties)
   }
 }
-case class ConstantPropertyOverride(entityName: String, propertyName: String, newValue: Long) extends Operation
+
+trait AddEffectOperation extends Operation {
+  def effect: Effect
+  def effectApplier: EntityId
+
+  override def applyOperation(entity: Entity): Entity = {
+    val newAppliedEffects = entity.appliedEffects :+ (effectApplier, effect)
+    entity.withNew(newAppliedEffects = newAppliedEffects)
+  }
+}
+
+case class ConstantPropertyOverride(entityName: String, propertyName: String, newValue: Long) extends PropertyOverrideOperation
 
 case class PlusPropertyOverride(entityResolver: EntityResolver,
                                 entityName: String,
                                 propertyName: String,
                                 addValue: Long
-                               ) extends Operation {
+                               ) extends PropertyOverrideOperation {
   lazy val newValue: Long = entityResolver.getEntityProperty(entityName, propertyName) + addValue
 
   override def toString: String = {
@@ -31,7 +47,7 @@ case class MinusPropertyOverride(entityResolver: EntityResolver,
                                  entityName: String,
                                  propertyName: String,
                                  minusValue: Long
-                                ) extends Operation {
+                                ) extends PropertyOverrideOperation {
   lazy val newValue: Long = entityResolver.getEntityProperty(entityName, propertyName) - minusValue
 
   override def toString: String = {
@@ -44,7 +60,7 @@ case class ClampedPlusPropertyOverride(entityResolver: EntityResolver,
                                        propertyName: String,
                                        addValue: Long,
                                        maxValue: Long
-                                      ) extends Operation {
+                                      ) extends PropertyOverrideOperation {
   require(addValue >= 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
   lazy val newValue: Long = MathUtils.clampedPlus(oldValue, addValue, maxValue)
@@ -59,7 +75,7 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
                                         propertyName: String,
                                         minusValue: Long,
                                         minValue: Long
-                                       ) extends Operation {
+                                       ) extends PropertyOverrideOperation {
   require(minusValue >= 0)
   lazy val oldValue = entityResolver.getEntityProperty(entityName, propertyName)
   lazy val newValue: Long = MathUtils.clampedMinus(oldValue, minusValue, minValue)

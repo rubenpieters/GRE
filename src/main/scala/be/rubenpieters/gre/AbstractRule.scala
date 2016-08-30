@@ -5,5 +5,4 @@ package be.rubenpieters.gre
   */
 abstract class AbstractRule {
   def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = Seq()
-  def createEffects(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Effect)] = Seq()
 }
