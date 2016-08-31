@@ -8,6 +8,7 @@ abstract class Effect {
   def effectState: EffectState
 
   def createOperations(actingEntity: EntityId
+                      ,targetEntity: Entity
                        ,entityResolver: EntityResolver
                        ,ruleEngineParameters: RuleEngineParameters
                       ): Seq[(EntityId, Operation)] = Seq()

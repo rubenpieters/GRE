@@ -52,9 +52,19 @@ case class Entity(
 
   def applyEffects: Entity = {
     // zip the rules with index and advance via index, attach new rules at the end of the seq
-    val newThis = appliedEffects.foldLeft(this) { (accEntity, appliedEffect) =>
-      val actingEntityId = appliedEffect._1
-      val effect = appliedEffect._2
+    val newThis = appliedEffects.zipWithIndex.foldLeft(this) { (accEntity, appliedEffect) =>
+      val actingEntityId = appliedEffect._1._1
+      val effect = appliedEffect._1._2
+      val index = appliedEffect._2
+
+      val newEffects = effect.next match {
+        case Some(nextEffect) =>
+          appliedEffects.patch(index, Seq((actingEntityId, nextEffect)), 1)
+        case None =>
+          val (l1, l2) = appliedEffects.splitAt(index)
+          l1 ++ l2.drop(1)
+      }
+      val thisWithNewEffects = withNew(newAppliedEffects = newEffects)
 
       //applyRule(effect.effectRule, actingEntityId)
       this
