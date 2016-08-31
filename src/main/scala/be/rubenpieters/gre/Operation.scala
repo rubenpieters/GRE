@@ -1,5 +1,7 @@
 package be.rubenpieters.gre
 
+import java.util.UUID
+
 import be.rubenpieters.utils.MathUtils
 
 /**
@@ -24,7 +26,8 @@ trait AddEffectOperation extends Operation {
   def effectApplier: EntityId
 
   override def applyOperation(entity: Entity): Entity = {
-    val newAppliedEffects = entity.appliedEffects :+ (effectApplier, effect)
+    val uuid = UUID.randomUUID().toString
+    val newAppliedEffects = entity.appliedEffects + (uuid -> (effectApplier, IdleEffect(effect)))
     entity.withNew(newAppliedEffects = newAppliedEffects)
   }
 }

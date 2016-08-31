@@ -6,4 +6,6 @@ package be.rubenpieters
 package object gre {
   type Properties = Map[String, Long]
   type EntityId = String
+
+
 }

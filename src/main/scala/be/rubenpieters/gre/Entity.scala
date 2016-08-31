@@ -7,14 +7,14 @@ case class Entity(
                    id: EntityId
                    ,properties: Properties = Map()
                    ,subEntities: Map[String, Entity] = Map()
-                   ,appliedEffects: Seq[(String, Effect)] = Seq()
+                   ,appliedEffects: Map[String, (EntityId, RunnableEffect)] = Map()
                    ,ruleEngineParameters: RuleEngineParameters
                  ) extends Identifiable with EntityResolver {
   require(! subEntities.keys.exists(_.equals(id)))
 
   def withNew(newProperties: Properties = properties
               ,newSubEntities: Map[String, Entity] = subEntities
-              ,newAppliedEffects: Seq[(String, Effect)] = appliedEffects): Entity = {
+              ,newAppliedEffects: Map[String, (EntityId, RunnableEffect)] = appliedEffects): Entity = {
     Entity(
       id
       ,newProperties
@@ -51,26 +51,31 @@ case class Entity(
   }
 
   def applyEffects: Entity = {
-    // zip the rules with index and advance via index, attach new rules at the end of the seq
-    val newThis = appliedEffects.zipWithIndex.foldLeft(this) { (accEntity, appliedEffect) =>
-      val actingEntityId = appliedEffect._1._1
-      val effect = appliedEffect._1._2
-      val index = appliedEffect._2
-
-      val newEffects = effect.next match {
-        case Some(nextEffect) =>
-          appliedEffects.patch(index, Seq((actingEntityId, nextEffect)), 1)
-        case None =>
-          val (l1, l2) = appliedEffects.splitAt(index)
-          l1 ++ l2.drop(1)
+    val effectsToRunning = appliedEffects.map { case (effectId, appliedEffect) =>
+      appliedEffect match {
+        case (actingEntity, effect: IdleEffect) => (effectId, (actingEntity, effect.toRunning))
+        case (actingEntity, effect: RunningEffect) => throw new IllegalStateException()
       }
-      val thisWithNewEffects = withNew(newAppliedEffects = newEffects)
+    }
+    var thisWithRunningEffects = withNew(newAppliedEffects = effectsToRunning)
 
-      //applyRule(effect.effectRule, actingEntityId)
-      this
+    while (thisWithRunningEffects.firstRunningEffect.isDefined) {
+      val (effectId, (actingEntity, firstRunningEffect)) = thisWithRunningEffects.firstRunningEffect.get
+      val currentRunningToIdleEntity = firstRunningEffect.next match {
+        case Some(next) => thisWithRunningEffects.withNew(newAppliedEffects =
+          appliedEffects + (effectId -> (actingEntity, next)))
+        case None => thisWithRunningEffects
+      }
+      thisWithRunningEffects = firstRunningEffect.applyEffect(actingEntity, currentRunningToIdleEntity, ruleEngineParameters)
     }
 
-    withNew(newThis.properties, newThis.subEntities, newThis.appliedEffects)
+    withNew(thisWithRunningEffects.properties, thisWithRunningEffects.subEntities, thisWithRunningEffects.appliedEffects)
+  }
+
+  def firstRunningEffect: Option[(String, (String, RunningEffect))] = {
+    appliedEffects.collectFirst {
+      case (effectId, (actingEntity, RunningEffect(e))) => (effectId, (actingEntity, RunningEffect(e)))
+    }
   }
 
   def applyRule(rule: AbstractRule, actingEntity: EntityId): Entity = {

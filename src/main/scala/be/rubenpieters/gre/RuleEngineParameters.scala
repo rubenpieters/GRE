@@ -8,3 +8,11 @@ import scala.util.Random
 case class RuleEngineParameters(rng: Random) {
 
 }
+
+object RuleEngineParameters {
+  def newParameters: RuleEngineParameters = {
+    RuleEngineParameters(
+      new Random()
+    )
+  }
+}

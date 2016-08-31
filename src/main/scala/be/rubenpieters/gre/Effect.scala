@@ -1,26 +1,47 @@
 package be.rubenpieters.gre
 
+import be.rubenpieters.gre.EntityTest.TestEffectBasedOnRunningCounter
+
 /**
   * Created by ruben on 29/08/2016.
   */
-abstract class Effect {
-  def next: Option[Effect]
-  def effectState: EffectState
+trait RunnableEffect {
+  def effect: Effect
 
-  def createOperations(actingEntity: EntityId
-                      ,targetEntity: Entity
-                       ,entityResolver: EntityResolver
-                       ,ruleEngineParameters: RuleEngineParameters
-                      ): Seq[(EntityId, Operation)] = Seq()
+  def applyEffect(actingEntity: EntityId, targetEntity: Entity, ruleEngineParameters: RuleEngineParameters) = {
+    val operations = effect.createOperations(actingEntity, targetEntity, targetEntity, ruleEngineParameters)
+    operations.foldLeft(targetEntity)((accEntity, currentOp) => currentOp.applyOperation(accEntity))
+  }
 }
 
-abstract class InitialEffect(effectState: InitialState) extends Effect
+case class RunningEffect(effect: Effect) extends RunnableEffect {
+  lazy val next: Option[IdleEffect] = effect.next.map { nextEffect =>
+    IdleEffect(nextEffect)
+  }
+}
+
+case class IdleEffect(effect: Effect) extends RunnableEffect {
+  lazy val toRunning: RunningEffect = RunningEffect(effect)
+}
+
+abstract class Effect(effectState: EffectState) {
+  def next: Option[Effect] = effectState.nextState.map { state =>
+    createWithNewState(state)
+  }
+  def createWithNewState(effectState: EffectState): Effect
+  var toApply: Boolean = false
+
+  def createOperations(actingEntity: EntityId
+                       ,targetEntity: Entity
+                       ,entityResolver: EntityResolver
+                       ,ruleEngineParameters: RuleEngineParameters
+                      ): Seq[Operation]
+}
+
 
 trait EffectState {
   def nextState: Option[EffectState]
 }
-
-case class InitialState(nextState: Some[EffectState]) extends EffectState
 
 case class EffectRunning(counter: Int) extends EffectState {
   require(counter > 0)
