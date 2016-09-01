@@ -50,21 +50,26 @@ case class Entity(
     getEntity(entityId).getProperty(propertyId)
   }
 
-  def applyEffects: Entity = {
+  def withRunningEffects: Entity = {
     val effectsToRunning = appliedEffects.map { case (effectId, appliedEffect) =>
       appliedEffect match {
         case (actingEntity, effect: IdleEffect) => (effectId, (actingEntity, effect.toRunning))
         case (actingEntity, effect: RunningEffect) => throw new IllegalStateException()
       }
     }
-    var thisWithRunningEffects = withNew(newAppliedEffects = effectsToRunning)
+
+    withNew(newAppliedEffects = effectsToRunning)
+  }
+
+  def applyEffects: Entity = {
+    var thisWithRunningEffects = withRunningEffects
 
     while (thisWithRunningEffects.firstRunningEffect.isDefined) {
       val (effectId, (actingEntity, firstRunningEffect)) = thisWithRunningEffects.firstRunningEffect.get
       val currentRunningToIdleEntity = firstRunningEffect.next match {
         case Some(next) =>
-          thisWithRunningEffects.withNew(newAppliedEffects = appliedEffects + (effectId -> (actingEntity, next)))
-        case None => thisWithRunningEffects.withNew(newAppliedEffects = appliedEffects - effectId)
+          thisWithRunningEffects.withNew(newAppliedEffects = thisWithRunningEffects.appliedEffects + (effectId -> (actingEntity, next)))
+        case None => thisWithRunningEffects.withNew(newAppliedEffects = thisWithRunningEffects.appliedEffects - effectId)
       }
       thisWithRunningEffects = firstRunningEffect.applyEffect(actingEntity, currentRunningToIdleEntity, ruleEngineParameters)
     }
