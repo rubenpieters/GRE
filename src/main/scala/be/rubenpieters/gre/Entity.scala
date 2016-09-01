@@ -29,7 +29,7 @@ case class Entity(
   }
 
   def popRule: (Entity, AbstractRule) = {
-    (withNew(newRuleAdvanceStrategy = ruleAdvanceStrategy.nextStrategy), ruleAdvanceStrategy.rule)
+    (ruleAdvanceStrategy.advance(this), ruleAdvanceStrategy.rule)
   }
 
   def getProperty(propertyId: String): Long = {

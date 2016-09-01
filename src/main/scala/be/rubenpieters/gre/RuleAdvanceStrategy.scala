@@ -4,7 +4,7 @@ package be.rubenpieters.gre
   * Created by ruben on 1/09/2016.
   */
 trait RuleAdvanceStrategy {
-  def nextStrategy: RuleAdvanceStrategy
+  def advance(entity: Entity): Entity
   def rule: AbstractRule
 }
 
@@ -15,8 +15,12 @@ case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int) extends 
   override val rule: AbstractRule = ruleSeq(pointer)
 
   lazy val nextPointer = pointer + 1
-  override lazy val nextStrategy: RuleAdvanceStrategy = nextPointer > ruleSeq.size match {
+  lazy val nextRule: RuleAdvanceStrategy = nextPointer > ruleSeq.size match {
     case true => CyclicRuleStrategy(ruleSeq, 0)
     case false => CyclicRuleStrategy(ruleSeq, nextPointer)
+  }
+
+  override def advance(entity: Entity): Entity = {
+    entity.withNew(newRuleAdvanceStrategy = nextRule)
   }
 }
