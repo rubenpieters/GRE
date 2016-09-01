@@ -23,8 +23,8 @@ class EntityTest extends FlatSpec with Matchers {
   }
 
   "effect based on running counter" should "work correctly" in {
-    val entity = baseEntity.withNew(newProperties = Map("x" -> 0), newAppliedEffects = Map(
-      "x" -> ("BASE", IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2))))
+    val entity = baseEntity.withNew(newProperties = Map(), newAppliedEffects = Map(
+      "x" -> ("BASE", IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2), "x")))
     ))
     val entityStates = (1 to 3).map { x =>
       (1 to x).foldLeft(entity)((entityAcc, _) => entityAcc.applyEffects)
@@ -33,17 +33,40 @@ class EntityTest extends FlatSpec with Matchers {
     entityStates.foreach(println)
   }
 
-  case class TestEffectBasedOnRunningCounter(effectState: EffectState) extends Effect(effectState) {
-    override def createWithNewState(effectState: EffectState): Effect = TestEffectBasedOnRunningCounter(effectState)
+  "effect creating effects" should "work correctly" in {
+    val entity = baseEntity.withNew(newProperties = Map("x" -> 0), newAppliedEffects = Map(
+      "x" -> ("BASE", IdleEffect(TestEffectCreatingEffects(EffectRunning(2))))
+    ))
+    val entityStates = (1 to 9).map { x =>
+      (1 to x).foldLeft(entity)((entityAcc, _) => entityAcc.applyEffects)
+    }
+
+    entityStates.foreach(println)
+  }
+
+  case class TestEffectBasedOnRunningCounter(effectState: EffectState, property: String) extends Effect(effectState) {
+    override def createWithNewState(effectState: EffectState): Effect = TestEffectBasedOnRunningCounter(effectState, property)
 
     override def createOperations(actingEntity: EntityId, targetEntity: Entity,
                                   entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = {
 
       effectState match {
-        case EffectRunning(i) => Seq(ConstantPropertyOverride("BASE", "x", i))
-        case EffectEnding => Seq(ConstantPropertyOverride("BASE", "x", -100))
+        case EffectRunning(i) => Seq(ConstantPropertyOverride("BASE", property, i))
+        case EffectEnding => Seq(ConstantPropertyOverride("BASE", property, -100))
       }
     }
+  }
 
+  case class TestEffectCreatingEffects(effectState: EffectState) extends Effect(effectState) {
+    override def createWithNewState(effectState: EffectState): Effect = TestEffectCreatingEffects(effectState)
+
+    override def createOperations(actingEntity: EntityId, targetEntity: Entity,
+                                  entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = {
+
+      effectState match {
+        case EffectRunning(i) => Seq(SimpleAddEffectOperation(TestEffectBasedOnRunningCounter(EffectRunning(2), s"x_$i"), "BASE"))
+        case EffectEnding => Seq()
+      }
+    }
   }
 }
