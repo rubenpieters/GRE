@@ -8,7 +8,10 @@ import org.scalatest.{FlatSpec, Matchers}
   */
 class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   val baseEntityId = "BASE"
-  val baseEntity = Entity(baseEntityId, ruleEngineParameters = RuleEngineParameters.newParameters)
+  val baseEntity = Entity(baseEntityId
+    ,ruleEngineParameters = RuleEngineParameters.newParameters
+    ,ruleAdvanceStrategy = mock[RuleAdvanceStrategy]
+  )
 
   "properties" should "be returned correctly" in {
     val entity = baseEntity.withNew(newProperties = Map("a" -> 1, "b" -> 2))
@@ -17,7 +20,7 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   "entities" should "be returned correctly" in {
-    val subEntityY = Entity("y", ruleEngineParameters = RuleEngineParameters.newParameters)
+    val subEntityY = Entity("y", ruleEngineParameters = RuleEngineParameters.newParameters, ruleAdvanceStrategy = mock[RuleAdvanceStrategy])
     val entity = baseEntity.withNew(newSubEntities = Map("y" -> subEntityY))
     entity.getEntity(baseEntityId) shouldEqual entity
     entity.getEntity("y") shouldEqual subEntityY

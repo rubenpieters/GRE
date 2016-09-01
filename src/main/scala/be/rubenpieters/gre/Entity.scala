@@ -9,19 +9,27 @@ case class Entity(
                    ,subEntities: Map[String, Entity] = Map()
                    ,appliedEffects: Map[String, (EntityId, RunnableEffect)] = Map()
                    ,ruleEngineParameters: RuleEngineParameters
+                   ,ruleAdvanceStrategy: RuleAdvanceStrategy
                  ) extends Identifiable with EntityResolver {
   require(! subEntities.keys.exists(_.equals(id)))
 
   def withNew(newProperties: Properties = properties
               ,newSubEntities: Map[String, Entity] = subEntities
-              ,newAppliedEffects: Map[String, (EntityId, RunnableEffect)] = appliedEffects): Entity = {
+              ,newAppliedEffects: Map[String, (EntityId, RunnableEffect)] = appliedEffects
+              ,newRuleAdvanceStrategy: RuleAdvanceStrategy = ruleAdvanceStrategy
+             ): Entity = {
     Entity(
       id
       ,newProperties
       ,newSubEntities
       ,newAppliedEffects
       ,ruleEngineParameters
+      ,ruleAdvanceStrategy
     )
+  }
+
+  def popRule: (Entity, AbstractRule) = {
+    (withNew(newRuleAdvanceStrategy = ruleAdvanceStrategy.nextStrategy), ruleAdvanceStrategy.rule)
   }
 
   def getProperty(propertyId: String): Long = {
