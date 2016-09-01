@@ -22,16 +22,28 @@ class EntityTest extends FlatSpec with Matchers {
     entity.getEntity("y") shouldEqual subEntityY
   }
 
-  "effect implementation" should "work correctly" in {
+  "effect based on running counter" should "work correctly" in {
     val entity = baseEntity.withNew(newProperties = Map("x" -> 0), newAppliedEffects = Map(
-
+      "x" -> ("BASE", IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2))))
     ))
+    val entityStates = (1 to 3).map { x =>
+      (1 to x).foldLeft(entity)((entityAcc, _) => entityAcc.applyEffects)
+    }
+
+    entityStates.foreach(println)
   }
 
   case class TestEffectBasedOnRunningCounter(effectState: EffectState) extends Effect(effectState) {
     override def createWithNewState(effectState: EffectState): Effect = TestEffectBasedOnRunningCounter(effectState)
 
-    override def createOperations(actingEntity: EntityId, targetEntity: Entity, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = ???
+    override def createOperations(actingEntity: EntityId, targetEntity: Entity,
+                                  entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = {
+
+      effectState match {
+        case EffectRunning(i) => Seq(ConstantPropertyOverride("BASE", "x", i))
+        case EffectEnding => Seq(ConstantPropertyOverride("BASE", "x", -100))
+      }
+    }
 
   }
 }

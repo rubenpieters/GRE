@@ -32,6 +32,9 @@ trait AddEffectOperation extends Operation {
   }
 }
 
+case class SimpleAddEffectOperation(effect: Effect, effectApplier: EntityId) extends AddEffectOperation {
+}
+
 case class ConstantPropertyOverride(entityName: String, propertyName: String, newValue: Long) extends PropertyOverrideOperation
 
 case class PlusPropertyOverride(entityResolver: EntityResolver,

@@ -62,9 +62,9 @@ case class Entity(
     while (thisWithRunningEffects.firstRunningEffect.isDefined) {
       val (effectId, (actingEntity, firstRunningEffect)) = thisWithRunningEffects.firstRunningEffect.get
       val currentRunningToIdleEntity = firstRunningEffect.next match {
-        case Some(next) => thisWithRunningEffects.withNew(newAppliedEffects =
-          appliedEffects + (effectId -> (actingEntity, next)))
-        case None => thisWithRunningEffects
+        case Some(next) =>
+          thisWithRunningEffects.withNew(newAppliedEffects = appliedEffects + (effectId -> (actingEntity, next)))
+        case None => thisWithRunningEffects.withNew(newAppliedEffects = appliedEffects - effectId)
       }
       thisWithRunningEffects = firstRunningEffect.applyEffect(actingEntity, currentRunningToIdleEntity, ruleEngineParameters)
     }

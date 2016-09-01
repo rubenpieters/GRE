@@ -1,7 +1,5 @@
 package be.rubenpieters.gre
 
-import be.rubenpieters.gre.EntityTest.TestEffectBasedOnRunningCounter
-
 /**
   * Created by ruben on 29/08/2016.
   */
@@ -46,12 +44,12 @@ trait EffectState {
 case class EffectRunning(counter: Int) extends EffectState {
   require(counter > 0)
 
-  val nextState = counter match {
+  override val nextState: Option[EffectState] = counter match {
     case 1 => Some(EffectEnding)
     case _ => Some(EffectRunning(counter - 1))
   }
 }
 
 case object EffectEnding extends EffectState {
-  val nextState = None
+  override val nextState: Option[EffectState] = None
 }
