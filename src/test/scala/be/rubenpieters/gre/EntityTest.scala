@@ -99,7 +99,6 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
       (1 to x).foldLeft(entity)((entityAcc, _) => entityAcc.applyEffects)
     }
 
-    entityStates.foreach(println)
     entityStates(0).appliedEffects.size shouldEqual 3
     entityStates(1).getProperty("x_2") shouldEqual 2
     entityStates(1).appliedEffects.size shouldEqual 4
