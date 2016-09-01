@@ -2,7 +2,6 @@ package be.rubenpieters.gre
 
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
-import org.mockito.Mockito._
 
 /**
   * Created by ruben on 29/08/2016.
