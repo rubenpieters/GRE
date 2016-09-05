@@ -90,6 +90,20 @@ case class Entity(
       case (effectId, (actingEntity, RunningEffect(e))) => (effectId, (actingEntity, RunningEffect(e)))
     }
   }
+
+  def applyRule(rule: AbstractRule, actingEntity: EntityId): Entity = {
+    val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
+    val updatedEntities = operations.groupBy(_._1).map { case (target, operationSeq) =>
+      val targetEntity = getEntity(target)
+      val newEntity = operationSeq
+        .map(_._2)
+        .foldLeft(targetEntity)((accEntity, currentOp) => currentOp.applyOperation(accEntity))
+      (target, newEntity)
+    }
+
+    updatedEntities.getOrElse(id, this)
+        .withNew(newSubEntities = subEntities ++ (updatedEntities - id))
+  }
 }
 
 trait Identifiable {

@@ -8,8 +8,8 @@ trait RuleAdvanceStrategy {
   def rule: AbstractRule
 }
 
-case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int) extends RuleAdvanceStrategy {
-  require(pointer > 0)
+case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int = 0) extends RuleAdvanceStrategy {
+  require(pointer >= 0)
   require(pointer < ruleSeq.size)
 
   override val rule: AbstractRule = ruleSeq(pointer)
