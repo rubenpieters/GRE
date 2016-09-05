@@ -24,7 +24,7 @@ case class Entity(
       ,newSubEntities
       ,newAppliedEffects
       ,ruleEngineParameters
-      ,ruleAdvanceStrategy
+      ,newRuleAdvanceStrategy
     )
   }
 
