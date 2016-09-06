@@ -21,13 +21,13 @@ case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int = 0) exte
   }
 
   override def advance(entity: Entity): Entity = {
-    entity.withNew(newRuleAdvanceStrategy = nextRule)
+    entity.copy(ruleAdvanceStrategy = nextRule)
   }
 }
 
 case class WorldWithInitiativeRuleStrategy(ruleStrategyEntity: Entity) extends RuleAdvanceStrategy {
   lazy val currentActiveEntity = ruleStrategyEntity.entitiesByProperty("INITIATIVE").head
-  
+
   override def advance(entity: Entity): Entity = ???
 
   override def rule: AbstractRule = ???

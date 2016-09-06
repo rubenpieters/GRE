@@ -17,7 +17,7 @@ trait PropertyOverrideOperation extends Operation {
 
   override def applyOperation(entity: Entity): Entity = {
     val newProperties = entity.properties + (propertyName -> newValue)
-    entity.withNew(newProperties = newProperties)
+    entity.copy(properties = newProperties)
   }
 }
 
@@ -28,7 +28,7 @@ trait AddEffectOperation extends Operation {
   override def applyOperation(entity: Entity): Entity = {
     val uuid = UUID.randomUUID().toString
     val newAppliedEffects = entity.appliedEffects + (uuid -> (effectApplier, IdleEffect(effect)))
-    entity.withNew(newAppliedEffects = newAppliedEffects)
+    entity.copy(appliedEffects = newAppliedEffects)
   }
 }
 

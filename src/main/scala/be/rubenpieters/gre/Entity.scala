@@ -13,21 +13,6 @@ case class Entity(
                  ) extends Identifiable with EntityResolver {
   require(! subEntities.keys.exists(_.equals(id)))
 
-  def withNew(newProperties: Properties = properties
-              ,newSubEntities: Map[String, Entity] = subEntities
-              ,newAppliedEffects: Map[String, (EntityId, RunnableEffect)] = appliedEffects
-              ,newRuleAdvanceStrategy: RuleAdvanceStrategy = ruleAdvanceStrategy
-             ): Entity = {
-    Entity(
-      id
-      ,newProperties
-      ,newSubEntities
-      ,newAppliedEffects
-      ,ruleEngineParameters
-      ,newRuleAdvanceStrategy
-    )
-  }
-
   def popRule: (Entity, AbstractRule) = {
     (ruleAdvanceStrategy.advance(this), ruleAdvanceStrategy.rule)
   }
@@ -71,7 +56,7 @@ case class Entity(
       }
     }
 
-    withNew(newAppliedEffects = effectsToRunning)
+    copy(appliedEffects = effectsToRunning)
   }
 
   def applyEffects: Entity = {
@@ -81,13 +66,13 @@ case class Entity(
       val (effectId, (actingEntity, firstRunningEffect)) = thisWithRunningEffects.firstRunningEffect.get
       val currentRunningToIdleEntity = firstRunningEffect.next match {
         case Some(next) =>
-          thisWithRunningEffects.withNew(newAppliedEffects = thisWithRunningEffects.appliedEffects + (effectId -> (actingEntity, next)))
-        case None => thisWithRunningEffects.withNew(newAppliedEffects = thisWithRunningEffects.appliedEffects - effectId)
+          thisWithRunningEffects.copy(appliedEffects = thisWithRunningEffects.appliedEffects + (effectId -> (actingEntity, next)))
+        case None => thisWithRunningEffects.copy(appliedEffects = thisWithRunningEffects.appliedEffects - effectId)
       }
       thisWithRunningEffects = firstRunningEffect.applyEffect(actingEntity, currentRunningToIdleEntity, ruleEngineParameters)
     }
 
-    withNew(thisWithRunningEffects.properties, thisWithRunningEffects.subEntities, thisWithRunningEffects.appliedEffects)
+    copy(properties = thisWithRunningEffects.properties, subEntities = thisWithRunningEffects.subEntities, appliedEffects = thisWithRunningEffects.appliedEffects)
   }
 
   def firstRunningEffect: Option[(String, (String, RunningEffect))] = {
@@ -107,7 +92,7 @@ case class Entity(
     }
 
     updatedEntities.getOrElse(id, this)
-        .withNew(newSubEntities = subEntities ++ (updatedEntities - id))
+        .copy(subEntities = subEntities ++ (updatedEntities - id))
   }
 }
 
