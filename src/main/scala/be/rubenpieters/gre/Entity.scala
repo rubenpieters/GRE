@@ -58,6 +58,11 @@ case class Entity(
     getEntity(entityId).getProperty(propertyId)
   }
 
+  def entitiesByProperty(propertyName: String): Seq[Entity] = {
+    // TODO: need to check if this is exactly the sorting we want
+    subEntities.values.toSeq.sortBy(_.properties.get(propertyName))
+  }
+
   def withRunningEffects: Entity = {
     val effectsToRunning = appliedEffects.map { case (effectId, appliedEffect) =>
       appliedEffect match {

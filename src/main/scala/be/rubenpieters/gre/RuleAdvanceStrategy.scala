@@ -15,7 +15,7 @@ case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int = 0) exte
   override val rule: AbstractRule = ruleSeq(pointer)
 
   lazy val nextPointer = pointer + 1
-  lazy val nextRule: RuleAdvanceStrategy = nextPointer > ruleSeq.size match {
+  lazy val nextRule: RuleAdvanceStrategy = nextPointer >= ruleSeq.size match {
     case true => CyclicRuleStrategy(ruleSeq, 0)
     case false => CyclicRuleStrategy(ruleSeq, nextPointer)
   }
@@ -23,4 +23,12 @@ case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int = 0) exte
   override def advance(entity: Entity): Entity = {
     entity.withNew(newRuleAdvanceStrategy = nextRule)
   }
+}
+
+case class WorldWithInitiativeRuleStrategy(ruleStrategyEntity: Entity) extends RuleAdvanceStrategy {
+  lazy val currentActiveEntity = ruleStrategyEntity.entitiesByProperty("INITIATIVE").head
+  
+  override def advance(entity: Entity): Entity = ???
+
+  override def rule: AbstractRule = ???
 }
