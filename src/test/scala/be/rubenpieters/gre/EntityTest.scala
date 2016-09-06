@@ -14,28 +14,28 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   )
 
   "properties" should "be returned correctly" in {
-    val entity = baseEntity.withNew(newProperties = Map("a" -> 1, "b" -> 2))
+    val entity = baseEntity.copy(properties = Map("a" -> 1, "b" -> 2))
     entity.getProperty("a") shouldEqual 1
     entity.getProperty("b") shouldEqual 2
   }
 
   "entities" should "be returned correctly" in {
     val subEntityY = Entity("y", ruleEngineParameters = RuleEngineParameters.newParameters, ruleAdvanceStrategy = mock[RuleAdvanceStrategy])
-    val entity = baseEntity.withNew(newSubEntities = Map("y" -> subEntityY))
+    val entity = baseEntity.copy(subEntities = Map("y" -> subEntityY))
     entity.getEntity(baseEntityId) shouldEqual entity
     entity.getEntity("y") shouldEqual subEntityY
   }
 
   "this with running" should "set all effects to running" in {
     val mockEffects = (1 to 10).map{ i => (i.toString, (baseEntityId, IdleEffect(mock[Effect])))}.toMap
-    val withRunningEffects = baseEntity.withNew(newAppliedEffects = mockEffects).withRunningEffects
+    val withRunningEffects = baseEntity.copy(appliedEffects = mockEffects).withRunningEffects
     withRunningEffects.appliedEffects.map(_._2._2).foreach { effect =>
       effect shouldBe a[RunningEffect]
     }
   }
 
   "two effects" should "run simultaneously" in {
-    val entity = baseEntity.withNew(newProperties = Map(), newAppliedEffects = Map(
+    val entity = baseEntity.copy(properties = Map(), appliedEffects = Map(
       "x" -> (baseEntityId, IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2), "x")))
       ,"y" -> (baseEntityId, IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2), "y")))
     ))
@@ -55,7 +55,7 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   "effect based on running counter" should "work correctly" in {
-    val entity = baseEntity.withNew(newProperties = Map(), newAppliedEffects = Map(
+    val entity = baseEntity.copy(properties = Map(), appliedEffects = Map(
       "x" -> (baseEntityId, IdleEffect(TestEffectBasedOnRunningCounter(EffectRunning(2), "x")))
     ))
     val entityStates = (1 to 3).map { x =>
@@ -71,7 +71,7 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   "effect creating effects" should "work correctly" in {
-    val entity = baseEntity.withNew(newProperties = Map(), newAppliedEffects = Map(
+    val entity = baseEntity.copy(properties = Map(), appliedEffects = Map(
       "x" -> (baseEntityId, IdleEffect(TestEffectCreatingEffects(EffectRunning(2))))
     ))
     val entityStates = (1 to 5).map { x =>
@@ -93,7 +93,7 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   "effect cleansing" should "work correctly" in {
-    val entity = baseEntity.withNew(newProperties = Map(), newAppliedEffects = Map(
+    val entity = baseEntity.copy(properties = Map(), appliedEffects = Map(
       "x" -> ("BASE", IdleEffect(TestEffectCreatingEffects(EffectRunning(2))))
       ,"y" -> ("BASE", IdleEffect(TestEffectCleanseWhenEnd(EffectRunning(3))))
     ))
@@ -149,7 +149,7 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
         case EffectRunning(i) => Seq()
         case EffectEnding => Seq(new Operation {
           override def applyOperation(entity: Entity): Entity = {
-            entity.withNew(newAppliedEffects = Map())
+            entity.copy(appliedEffects = Map())
           }
         })
       }
