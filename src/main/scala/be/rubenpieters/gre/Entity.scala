@@ -10,7 +10,7 @@ case class Entity(
                    ,appliedEffects: Map[String, (EntityId, RunnableEffect)] = Map()
                    ,ruleEngineParameters: RuleEngineParameters
                    ,ruleAdvanceStrategy: RuleAdvanceStrategy
-                 ) extends Identifiable with EntityResolver {
+                 ) extends Identifiable with EntityResolver with RecursiveEntity {
   require(! subEntities.keys.exists(_.equals(id)))
 
   def popRule: (Entity, AbstractRule) = {
@@ -81,18 +81,8 @@ case class Entity(
     }
   }
 
-  def applyRule(rule: AbstractRule, actingEntity: EntityId): Entity = {
-    val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
-    val updatedEntities = operations.groupBy(_._1).map { case (target, operationSeq) =>
-      val targetEntity = getEntity(target)
-      val newEntity = operationSeq
-        .map(_._2)
-        .foldLeft(targetEntity)((accEntity, currentOp) => currentOp.applyOperation(accEntity))
-      (target, newEntity)
-    }
-
-    updatedEntities.getOrElse(id, this)
-        .copy(subEntities = subEntities ++ (updatedEntities - id))
+  override def withUpdatedSubEntities(subEntities: Map[String, Entity]): RecursiveEntity = {
+    copy(subEntities = subEntities)
   }
 }
 
@@ -101,6 +91,14 @@ trait Identifiable {
 }
 
 trait EntityResolver {
+  def getEntity(entityId: String): Entity
   def getEntityProperty(entityId: String, propertyId: String): Long
 }
 
+trait RecursiveEntity {
+  def subEntities: Map[String, Entity]
+  def withUpdatedSubEntities(subEntities: Map[String, Entity]): RecursiveEntity
+}
+
+trait Advancable {
+}

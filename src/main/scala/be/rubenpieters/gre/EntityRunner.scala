@@ -37,7 +37,7 @@ object EntityRunner extends App {
   )
 
 
-  val rule = entity.ruleAdvanceStrategy.rule
+  /*val rule = entity.ruleAdvanceStrategy.rule
   val newEntity = entity.applyRule(rule, "p1")
   println(newEntity)
 
@@ -51,7 +51,7 @@ object EntityRunner extends App {
   def advance(entity: Entity): Entity = {
     val rule = entity.ruleAdvanceStrategy.rule
     entity.applyRule(rule, entity.id)
-  }
+  }*/
 
   def test(i: Int ): Int = {
     println(s"i $i")
