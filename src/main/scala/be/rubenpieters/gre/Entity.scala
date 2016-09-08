@@ -10,7 +10,7 @@ case class Entity(
                    ,appliedEffects: Map[String, (EntityId, RunnableEffect)] = Map()
                    ,ruleEngineParameters: RuleEngineParameters
                    ,ruleAdvanceStrategy: RuleAdvanceStrategy
-                 ) extends Identifiable with EntityResolver with RecursiveEntity {
+                 ) extends Identifiable with EntityResolver with RecursiveEntity with Scope {
   require(! subEntities.keys.exists(_.equals(id)))
 
   def popRule: (Entity, AbstractRule) = {
@@ -41,11 +41,6 @@ case class Entity(
 
   def getEntityProperty(entityId: EntityId, propertyId: String): Long = {
     getEntity(entityId).getProperty(propertyId)
-  }
-
-  def entitiesByProperty(propertyName: String): Seq[Entity] = {
-    // TODO: need to check if this is exactly the sorting we want
-    subEntities.values.toSeq.sortBy(_.properties.get(propertyName))
   }
 
   def withRunningEffects: Entity = {
@@ -98,6 +93,11 @@ trait EntityResolver {
 trait RecursiveEntity {
   def subEntities: Map[String, Entity]
   def withUpdatedSubEntities(subEntities: Map[String, Entity]): RecursiveEntity
+
+  def entitiesByProperty(propertyName: String): Seq[Entity] = {
+    // TODO: need to check if this is exactly the sorting we want
+    subEntities.values.toSeq.sortBy(_.properties.get(propertyName))
+  }
 }
 
 trait Advancable {

@@ -17,9 +17,21 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
     }
 
     // if this is inside the updated entities, grab it; if not just use this
-    val updatedThis = updatedEntities.getOrElse(id, this)
+    // TODO: get rid of the cast
+    val updatedThis = updatedEntities.getOrElse(id, this).asInstanceOf[RecursiveEntity]
     // replace the subentites with the updatedentities, remove this (or the updated this) since we already grabbed it
-    withUpdatedSubEntities(subEntities = subEntities ++ (updatedEntities - id))
+    updatedThis.withUpdatedSubEntities(subEntities = subEntities ++ (updatedEntities - id))
   }
 
+  def advance: RecursiveEntity = {
+    // TODO: move the advance logic code to somewhere more generic?
+    val nextEntity = entitiesByProperty("INITIATIVE").head
+    val (nextEntityUpdated, rule) = nextEntity.popRule
+    val scopeUpdated = nextEntityUpdated.id match {
+      case id => nextEntityUpdated
+      case _ => withUpdatedSubEntities(subEntities = subEntities + (nextEntityUpdated.id -> nextEntityUpdated))
+    }
+    // TODO: get rid of the cast
+    scopeUpdated.asInstanceOf[Scope].applyRule(rule, nextEntityUpdated.id)
+  }
 }
