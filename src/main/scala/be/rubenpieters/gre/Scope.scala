@@ -9,7 +9,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
   def applyRule(rule: AbstractRule, actingEntity: EntityId): RecursiveEntity = {
     val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
     val updatedEntities = operations.groupBy(_._1).map { case (target, operationSeq) =>
-      val targetEntity = getEntity(target)
+      val targetEntity = getEntityUnsafe(target)
       val newEntity = operationSeq
         .map(_._2)
         .foldLeft(targetEntity)((accEntity, currentOp) => currentOp.applyOperation(accEntity))

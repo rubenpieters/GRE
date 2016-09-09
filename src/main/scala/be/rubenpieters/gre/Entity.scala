@@ -24,23 +24,26 @@ case class Entity(
     }
   }
 
-  def getEntity(findId: String): Entity = {
+  def getEntity(findId: String): Option[Entity] = {
     id.equals(findId) match {
-      case true => this
+      case true => Some(this)
       case false =>
         // NOTE: this sort of assumes that entity ids are globally unique, or at least within all possible scopes
-        val firstFoundEntity = subEntities.collectFirst { case (entityId, entity) =>
+        subEntities.flatMap{ case (entityId, entity) =>
           entity.getEntity(entityId)
-        }
-        firstFoundEntity match {
-          case Some(e) => e
-          case None => throw new IllegalArgumentException(s"Entity or its subEntities $id does not contain an entity with id $findId")
-        }
+        }.headOption
+    }
+  }
+
+  def getEntityUnsafe(findId: String): Entity = {
+    getEntity(findId) match {
+      case Some(e) => e
+      case None => throw new IllegalStateException(s"Scope $id or its subEntities do not contain entity $findId")
     }
   }
 
   def getEntityProperty(entityId: EntityId, propertyId: String): Long = {
-    getEntity(entityId).getProperty(propertyId)
+    getEntityUnsafe(entityId).getProperty(propertyId)
   }
 
   def withRunningEffects: Entity = {
@@ -86,7 +89,8 @@ trait Identifiable {
 }
 
 trait EntityResolver {
-  def getEntity(entityId: String): Entity
+  def getEntity(entityId: String): Option[Entity]
+  def getEntityUnsafe(entityId: String): Entity
   def getEntityProperty(entityId: String, propertyId: String): Long
 }
 

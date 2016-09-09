@@ -22,8 +22,8 @@ class EntityTest extends FlatSpec with Matchers with MockitoSugar {
   "entities" should "be returned correctly" in {
     val subEntityY = Entity("y", ruleEngineParameters = RuleEngineParameters.newParameters, ruleAdvanceStrategy = mock[RuleAdvanceStrategy])
     val entity = baseEntity.copy(subEntities = Map("y" -> subEntityY))
-    entity.getEntity(baseEntityId) shouldEqual entity
-    entity.getEntity("y") shouldEqual subEntityY
+    entity.getEntity(baseEntityId) shouldEqual Some(entity)
+    entity.getEntity("y") shouldEqual Some(subEntityY)
   }
 
   "this with running" should "set all effects to running" in {
