@@ -28,7 +28,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
     val nextEntity = entitiesByProperty("INITIATIVE").head
     val (nextEntityUpdated, rule) = nextEntity.popRule
     val scopeUpdated = nextEntityUpdated.id match {
-      case id => nextEntityUpdated
+      case updatedId if updatedId.equals(id) => nextEntityUpdated
       case _ => withUpdatedSubEntities(subEntities = subEntities + (nextEntityUpdated.id -> nextEntityUpdated))
     }
     // TODO: get rid of the cast

@@ -23,4 +23,34 @@ class ScopeTest extends FlatSpec with Matchers with MockitoSugar {
 
     entity.entitiesByProperty("X").toList should contain inOrder (entity1, entity2)
   }
+
+  "advance" should "work in basic case" in {
+    val entity1 = baseEntity.copy(id = "1", Map("X" -> 0L, "INITIATIVE" -> 1L), ruleAdvanceStrategy = CyclicRuleStrategy(
+      Seq(
+        new AbstractRule {
+          override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
+            Seq(
+              ("1", PlusPropertyOverride(entityResolver, "1", "X", 1))
+            )
+          }
+        })))
+    val entity2 = baseEntity.copy(id = "2", Map("X" -> 0L, "INITIATIVE" -> 2L), ruleAdvanceStrategy = CyclicRuleStrategy(
+      Seq(
+        new AbstractRule {
+          override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
+            Seq(
+              ("2", PlusPropertyOverride(entityResolver, "2", "X", 1))
+            )
+          }
+        })))
+    val entity = baseEntity.copy(subEntities = Map(
+      "1" -> entity1
+      ,"2" -> entity2
+    ))
+
+    val advanced1 = entity.advance
+    println(advanced1)
+    val advanced2 = entity.advance
+    println(advanced2)
+  }
 }
