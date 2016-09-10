@@ -1,5 +1,7 @@
 package be.rubenpieters.gre
 
+
+
 /**
   * Created by ruben on 1/09/2016.
   */
@@ -12,7 +14,7 @@ class EntityRunner(entity: Entity) {
 object EntityRunner extends App {
   val entity1 = Entity(
     "p1"
-    ,Map("x" -> 0, "y" -> 0, "INITIATIVE"-> 1)
+    ,Map("x" -> 0, "y" -> 0, "INITIATIVE"-> 1, "IN_INC" -> 1, "IN_DEC" -> 1)
   ,Map()
   ,Map()
   ,RuleEngineParameters.newParameters
@@ -39,7 +41,7 @@ object EntityRunner extends App {
 
   val entity2 = Entity(
     "p2"
-    ,Map("z" -> 0, "INITIATIVE"-> 2)
+    ,Map("z" -> 0, "INITIATIVE"-> 2, "IN_INC" -> 2, "IN_DEC" -> 2)
     ,Map()
     ,Map()
     ,RuleEngineParameters.newParameters
@@ -59,7 +61,7 @@ object EntityRunner extends App {
   val scopeEntity = Entity(
     "scope"
     ,Map()
-    ,Map("p1" -> entity1, "p1" -> entity2)
+    ,Map("p1" -> entity1, "p2" -> entity2)
     ,Map()
     ,RuleEngineParameters.newParameters
     ,null
