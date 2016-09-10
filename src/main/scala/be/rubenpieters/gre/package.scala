@@ -1,11 +1,8 @@
 package be.rubenpieters
 
 /**
-  * Created by ruben on 29/08/2016.
+  * Created by ruben on 10/09/16.
   */
 package object gre {
-  type Properties = Map[String, Long]
-  type EntityId = String
-
-
+  type Properties[A] = Map[String, A]
 }

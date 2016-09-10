@@ -10,8 +10,22 @@ import cats.{Id, ~>}
 /**
   * Created by ruben on 9/09/2016.
   */
+case class EntityImpl(properties: Properties[Long]) extends Entity {
+
+}
+
+trait Entity {
+
+  def properties: Properties[Long]
+}
+
 object Notepad extends App {
-  type Properties[A] = Map[String, A]
+
+  
+
+
+
+  /*type Properties[A] = Map[String, A]
 
   sealed trait PropertyOperationA[A]
   case class SetProperty[T](propertyName: String, value: T) extends PropertyOperationA[Unit]
@@ -60,5 +74,5 @@ object Notepad extends App {
     } yield ()
 
   val result = program.foldMap(pureCompiler).run(Map.empty).value
-  println(result)
+  println(result)*/
 }
