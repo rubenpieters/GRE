@@ -3,7 +3,8 @@ version := "0.0.1"
 scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
-  "org.scalaz" %% "scalaz-core" % "7.3.0-M4"
+  "org.typelevel" %% "cats" % "0.7.2"
+
   ,"com.google.guava" % "guava" % "19.0"
 
   ,"com.typesafe.scala-logging" %% "scala-logging" % "3.4.0"
