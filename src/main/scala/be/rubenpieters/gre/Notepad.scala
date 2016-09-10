@@ -10,28 +10,40 @@ import cats.{Id, ~>}
 /**
   * Created by ruben on 9/09/2016.
   */
-case class EntityImpl(properties: Properties[Long]) extends Entity {
-
-}
-
-trait Entity {
-
-  def properties: Properties[Long]
-}
-
 object Notepad extends App {
+  import PropertyOperations._
 
-  
+  val prog = for {
+    _ <- setProperty("a", 1)
+    _ <- setProperty("b", 2)
+  } yield ()
 
 
+  val entity = EntityImpl()
+  prog.foldMap(entity)
+}
 
-  /*type Properties[A] = Map[String, A]
+case class EntityImpl(properties: Properties[Long] = Map()) extends Entity {
 
-  sealed trait PropertyOperationA[A]
-  case class SetProperty[T](propertyName: String, value: T) extends PropertyOperationA[Unit]
-  case class GetProperty[T](propertyName: String) extends PropertyOperationA[Option[T]]
-  case class DeleteProperty(propertyName: String) extends PropertyOperationA[Unit]
+}
 
+trait Entity extends (PropertyOperationA ~> Id) {
+  def properties: Properties[Long]
+
+  def apply[A](fa: PropertyOperationA[A]) =
+    fa match {
+      case SetProperty(key, value) => properties + (key -> value)
+      case GetProperty(key) => properties.get(key)
+      case DeleteProperty(key) => properties
+    }
+}
+
+sealed trait PropertyOperationA[A]
+case class SetProperty[T](propertyName: String, value: T) extends PropertyOperationA[Unit]
+case class GetProperty[T](propertyName: String) extends PropertyOperationA[Option[T]]
+case class DeleteProperty(propertyName: String) extends PropertyOperationA[Unit]
+
+object PropertyOperations {
   type PropertyOperation[A] = Free[PropertyOperationA, A]
 
   def setProperty[T](propertyName: String, value: T): PropertyOperation[Unit] = {
@@ -62,17 +74,4 @@ object Notepad extends App {
         case DeleteProperty(key) => State.modify(_ - key)
       }
   }
-
-  def program: PropertyOperation[Unit] =
-    for {
-      _ <- setProperty("wild-cats", 2)
-      _ <- updateProperty[Int]("wild-cats", (_ + 12))
-      _ <- setProperty("tame-cats", 5)
-      n <- getProperty[Int]("wild-cats")
-      _ <- deleteProperty("tame-cats")
-      x <- setProperty("tame-cats2", n)
-    } yield ()
-
-  val result = program.foldMap(pureCompiler).run(Map.empty).value
-  println(result)*/
 }
