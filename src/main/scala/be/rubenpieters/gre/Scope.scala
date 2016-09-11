@@ -5,6 +5,7 @@ package be.rubenpieters.gre
   */
 trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
   def ruleEngineParameters: RuleEngineParameters
+  def applyEffects: Entity
 
   def applyRule(rule: AbstractRule, actingEntity: EntityId): RecursiveEntity = {
     val operations = rule.createOperations(actingEntity, this, ruleEngineParameters)
@@ -32,7 +33,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
         this, e.id, "INITIATIVE", getEntityPropertySafe(e.id, "IN_INC").getOrElse(0)
       ).applyOperation(e)
       }
-      withUpdatedSubEntities(subEntities = updatedEntities)
+      withUpdatedSubEntities(subEntities = updatedEntities).asInstanceOf[Entity].applyEffects
     } else {
       this
     }
