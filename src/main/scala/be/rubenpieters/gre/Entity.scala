@@ -13,6 +13,14 @@ case class Entity(
                  ) extends Identifiable with EntityResolver with RecursiveEntity with Scope {
   require(! subEntities.keys.exists(_.equals(id)))
 
+  def updatedProperties(k: String, v: Long): Entity = {
+    copy(properties = properties.updated(k, v))
+  }
+
+  def updatedEffects(k: String, effect: (EntityId, RunnableEffect)): Entity = {
+    copy(appliedEffects = appliedEffects.updated(k, (effect._1, effect._2)))
+  }
+
   def popRule: (Entity, AbstractRule) = {
     (ruleAdvanceStrategy.advance(this), ruleAdvanceStrategy.rule)
   }

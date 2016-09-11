@@ -3,11 +3,15 @@ package be.rubenpieters.gre
 import java.util.UUID
 
 import be.rubenpieters.utils.MathUtils
+import cats.data.Reader
+
+import scala.util.Random
 
 /**
   * Created by ruben on 29/08/2016.
   */
 trait Operation {
+
   def applyOperation(entity: Entity): Entity
 }
 
@@ -16,8 +20,7 @@ trait PropertyOverrideOperation extends Operation {
   def newValue: Long
 
   override def applyOperation(entity: Entity): Entity = {
-    val newProperties = entity.properties + (propertyName -> newValue)
-    entity.copy(properties = newProperties)
+    entity.updatedProperties(propertyName, newValue)
   }
 }
 
@@ -26,9 +29,8 @@ trait AddEffectOperation extends Operation {
   def effectApplier: EntityId
 
   override def applyOperation(entity: Entity): Entity = {
-    val uuid = UUID.randomUUID().toString
-    val newAppliedEffects = entity.appliedEffects + (uuid -> (effectApplier, IdleEffect(effect)))
-    entity.copy(appliedEffects = newAppliedEffects)
+    val uuid = UUID.randomUUID.toString
+    entity.updatedEffects(uuid, (effectApplier, IdleEffect(effect)))
   }
 }
 
@@ -90,4 +92,3 @@ case class ClampedMinusPropertyOverride(entityResolver: EntityResolver,
     s"ClampedMinusPropertyOverride(enNm: $entityName, prNm: $propertyName, minusv: $minusValue, minv: $minValue, nv: $newValue)"
   }
 }
-
