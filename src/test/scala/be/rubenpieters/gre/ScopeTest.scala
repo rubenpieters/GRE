@@ -33,14 +33,14 @@ class ScopeTest extends FlatSpec with Matchers with MockitoSugar {
       ,RuleEngineParameters.newParameters
       ,CyclicRuleStrategy(
         Seq(
-          new AbstractRule {
+          new AbstractRule with UUIDLabeled {
             override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
               Seq(
                 ("p1", PlusPropertyOverride(entityResolver, "p1", "x", 1))
               )
             }
           },
-          new AbstractRule {
+          new AbstractRule with UUIDLabeled {
             override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
               Seq(
                 ("p1", PlusPropertyOverride(entityResolver, "p1", "y", 1))
@@ -60,7 +60,7 @@ class ScopeTest extends FlatSpec with Matchers with MockitoSugar {
       ,RuleEngineParameters.newParameters
       ,CyclicRuleStrategy(
         Seq(
-          new AbstractRule {
+          new AbstractRule with UUIDLabeled {
             override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
               Seq(
                 ("p2", PlusPropertyOverride(entityResolver, "p2", "z", 1))

@@ -97,6 +97,10 @@ case class Entity(
   override def withUpdatedSubEntities(subEntities: Map[String, Entity]): RecursiveEntity = {
     copy(subEntities = subEntities)
   }
+
+  override def toString = {
+    s"Entity[Id: $id, subEntities: $subEntities, effects: $appliedEffects, ruleStrategy: $ruleAdvanceStrategy]"
+  }
 }
 
 trait Identifiable {
