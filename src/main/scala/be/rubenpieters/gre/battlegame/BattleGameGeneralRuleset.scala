@@ -22,7 +22,7 @@ object BattleApp extends App {
     ,Map()
     ,Map()
     ,ruleEngineParameters
-    ,CyclicRuleWithRepresentationStrategy(
+    ,ShuffledCyclicRuleWithRepresentationStrategy.fromRuleSeq(
       Seq(
         (equipRuleSet1Weapon, 2)
         //,(new RaiseShieldRule, 2)
@@ -41,7 +41,7 @@ object BattleApp extends App {
     ,Map()
     ,Map()
     ,ruleEngineParameters
-    ,CyclicRuleWithRepresentationStrategy(
+    ,ShuffledCyclicRuleWithRepresentationStrategy.fromRuleSeq(
       Seq(
         (equipRuleSet2Weapon, 2)
         ,(new GenerateResource(1, 1), 2)

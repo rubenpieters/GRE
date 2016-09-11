@@ -25,8 +25,15 @@ case class CyclicRuleStrategy(ruleSeq: Seq[AbstractRule], pointer: Int = 0) exte
   }
 }
 
-case class CyclicRuleWithRepresentationStrategy(ruleSeq: Seq[(AbstractRule, Int)], ruleEngineParameters: RuleEngineParameters, pointer: Int = 0) extends RuleAdvanceStrategy {
-  val fullRules = ruleEngineParameters.rng.shuffle(ruleSeq.flatMap{ case (rule, reprAmt) => Seq.fill(reprAmt)(rule)})
+// TODO: optimize this, dont need to keep the complete shuffled sequence in memory
+
+case class ShuffledCyclicRuleWithRepresentationStrategy(
+                                                         ruleSeq: Seq[(AbstractRule, Int)]
+                                                         ,fullRules: Seq[AbstractRule]
+                                                         ,ruleEngineParameters: RuleEngineParameters
+                                                         ,pointer: Int = 0
+                                                       )
+  extends RuleAdvanceStrategy {
   require(pointer >= 0)
   require(pointer < fullRules.size)
 
@@ -34,8 +41,8 @@ case class CyclicRuleWithRepresentationStrategy(ruleSeq: Seq[(AbstractRule, Int)
 
   lazy val nextPointer = pointer + 1
   lazy val nextRule: RuleAdvanceStrategy = nextPointer >= fullRules.size match {
-    case true => CyclicRuleWithRepresentationStrategy(ruleSeq, ruleEngineParameters)
-    case false => CyclicRuleWithRepresentationStrategy(ruleSeq, ruleEngineParameters, nextPointer)
+    case true => ShuffledCyclicRuleWithRepresentationStrategy.fromRuleSeq(ruleSeq, ruleEngineParameters)
+    case false => ShuffledCyclicRuleWithRepresentationStrategy(ruleSeq, fullRules, ruleEngineParameters, nextPointer)
   }
 
   override def advance(entity: Entity): Entity = {
@@ -44,6 +51,13 @@ case class CyclicRuleWithRepresentationStrategy(ruleSeq: Seq[(AbstractRule, Int)
 
   override def toString = {
     s"Pointer: $pointer, Full Rules: ${fullRules.map(_.label)}"
+  }
+}
+
+object ShuffledCyclicRuleWithRepresentationStrategy {
+  def fromRuleSeq(ruleSeq: Seq[(AbstractRule, Int)], ruleEngineParameters: RuleEngineParameters) = {
+    val reshuffledRules = ruleEngineParameters.rng.shuffle(ruleSeq.flatMap{ case (rule, reprAmt) => Seq.fill(reprAmt)(rule)})
+    ShuffledCyclicRuleWithRepresentationStrategy(ruleSeq, reshuffledRules, ruleEngineParameters, 0)
   }
 }
 
