@@ -14,7 +14,7 @@ object BattleApp extends App {
 
   val entity1 = Entity(
     "p1"
-    ,entityBasicProperties ++ Map("INITIATIVE" -> 1L, "IN_INC" -> 0L, "IN_DEC" -> 0L)
+    ,entityBasicProperties ++ Map("INITIATIVE" -> 0L, "IN_INC" -> 1L, "IN_DEC" -> 1L)
     ,Map()
     ,Map()
     ,ruleEngineParameters
@@ -28,7 +28,7 @@ object BattleApp extends App {
 
   val entity2 = Entity(
     "p2"
-    ,entityBasicProperties ++ Map("INITIATIVE" -> 1L, "IN_INC" -> 0L, "IN_DEC" -> 0L)
+    ,entityBasicProperties ++ Map("INITIATIVE" -> 0L, "IN_INC" -> 1L, "IN_DEC" -> 1L)
     ,Map()
     ,Map()
     ,ruleEngineParameters
