@@ -46,6 +46,13 @@ case class Entity(
     getEntityUnsafe(entityId).getProperty(propertyId)
   }
 
+  def getEntityPropertySafe(entityId: EntityId, propertyId: String): Option[Long] = {
+    for {
+      entity <- getEntity(entityId)
+      property <- entity.properties.get(propertyId)
+    } yield property
+  }
+
   def withRunningEffects: Entity = {
     val effectsToRunning = appliedEffects.map { case (effectId, appliedEffect) =>
       appliedEffect match {
@@ -92,6 +99,7 @@ trait EntityResolver {
   def getEntity(entityId: String): Option[Entity]
   def getEntityUnsafe(entityId: String): Entity
   def getEntityProperty(entityId: String, propertyId: String): Long
+  def getEntityPropertySafe(entityId: String, propertyId: String): Option[Long]
 }
 
 trait RecursiveEntity {

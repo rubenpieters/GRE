@@ -29,7 +29,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
     // if all entities are out of initiative, increase their initiative
     val updatedThis = if (subEntities.forall { case (_, e) => e.getProperty("INITIATIVE") <= 0}) {
       val updatedEntities = subEntities.mapValues { e => PlusPropertyOverride(
-        this, e.id, "INITIATIVE", getEntityProperty(e.id, "IN_INC")
+        this, e.id, "INITIATIVE", getEntityPropertySafe(e.id, "IN_INC").getOrElse(0)
       ).applyOperation(e)
       }
       withUpdatedSubEntities(subEntities = updatedEntities)
@@ -41,7 +41,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
     val nextEntity = updatedThis.entitiesByProperty("INITIATIVE").head
     val (nextEntityUpdated, rule) = nextEntity.popRule
     val nextEntityUpdatedMinusInit = MinusPropertyOverride(
-      updatedThis.asInstanceOf[EntityResolver], nextEntityUpdated.id, "INITIATIVE", getEntityProperty(nextEntityUpdated.id, "IN_DEC")
+      updatedThis.asInstanceOf[EntityResolver], nextEntityUpdated.id, "INITIATIVE", getEntityPropertySafe(nextEntityUpdated.id, "IN_DEC").getOrElse(0)
     ).applyOperation(nextEntityUpdated)
     val scopeUpdated = nextEntityUpdatedMinusInit.id match {
       case updatedId if updatedId.equals(id) => nextEntityUpdatedMinusInit
