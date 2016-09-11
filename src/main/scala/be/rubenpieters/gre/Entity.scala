@@ -21,6 +21,10 @@ case class Entity(
     copy(appliedEffects = appliedEffects.updated(k, (effect._1, effect._2)))
   }
 
+  def updatedSubEntities(k: String, entity: Entity): Entity = {
+    copy(subEntities = subEntities.updated(k, entity))
+  }
+
   def popRule: (Entity, AbstractRule) = {
     (ruleAdvanceStrategy.advance(this), ruleAdvanceStrategy.rule)
   }
@@ -73,7 +77,12 @@ case class Entity(
   }
 
   def applyEffects: Entity = {
-    var thisWithRunningEffects = withRunningEffects
+    val subEntitiesWithAppliedEffects = subEntities.foldLeft(this){ case (scopeEntity, (entityId, subEntity)) =>
+      val updatedEntity = subEntity.applyEffects
+      scopeEntity.updatedSubEntities(entityId, updatedEntity)
+    }
+
+    var thisWithRunningEffects = subEntitiesWithAppliedEffects.withRunningEffects
 
     while (thisWithRunningEffects.firstRunningEffect.isDefined) {
       val (effectId, (actingEntity, firstRunningEffect)) = thisWithRunningEffects.firstRunningEffect.get

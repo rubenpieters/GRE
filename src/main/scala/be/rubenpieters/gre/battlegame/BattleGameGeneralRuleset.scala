@@ -160,7 +160,7 @@ object BattleGameRuleSet1 {
     override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver,
                                   ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
       Seq(
-        (actingEntity, SimpleAddEffectOperation(new RaiseShieldEffect(EffectRunning(1)), actingEntity))
+        (actingEntity, SimpleAddEffectOperation(new RaiseShieldEffect(EffectEnding), actingEntity))
 
       ) ++ allDamageTypes.map{ dt => (actingEntity, PlusPropertyOverride(entityResolver, actingEntity, dt, 5))}
     }
@@ -169,7 +169,6 @@ object BattleGameRuleSet1 {
       override def createWithNewState(effectState: EffectState): Effect = new RaiseShieldEffect(effectState)
 
       override def createOperations(actingEntity: EntityId, targetEntity: Entity, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = {
-        println("CREATING RS OPS")
         effectState match {
           case EffectRunning(i) => Seq()
           case EffectEnding => allDamageTypes.map{ dt => MinusPropertyOverride(entityResolver, actingEntity, dt, 5)}
