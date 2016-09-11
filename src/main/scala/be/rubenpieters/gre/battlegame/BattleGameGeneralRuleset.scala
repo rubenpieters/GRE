@@ -160,7 +160,7 @@ object BattleGameRuleSet1 {
     override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver,
                                   ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
       Seq(
-        (actingEntity, SimpleAddEffectToScopeOperation(entityResolver, "scope", new RaiseShieldEffect(EffectRunning(1)), actingEntity))
+        (actingEntity, SimpleAddEffectOperation(new RaiseShieldEffect(EffectRunning(1)), actingEntity))
 
       ) ++ allDamageTypes.map{ dt => (actingEntity, PlusPropertyOverride(entityResolver, actingEntity, dt, 5))}
     }

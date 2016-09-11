@@ -33,12 +33,6 @@ trait AddEffectOperation extends Operation {
 
 case class SimpleAddEffectOperation(effect: Effect, effectApplier: EntityId) extends AddEffectOperation {
 }
-case class SimpleAddEffectToScopeOperation(entityResolver: EntityResolver, scope: String, effect: Effect, effectApplier: EntityId) extends AddEffectOperation {
-  override def applyOperation(entity: Entity): Entity = {
-    val uuid = UUID.randomUUID.toString
-    entityResolver.getEntityUnsafe(scope).updatedEffects(uuid, (effectApplier, IdleEffect(effect)))
-  }
-}
 
 case class ConstantPropertyOverride(entityName: String, propertyName: String, newValue: Long) extends PropertyOverrideOperation
 
