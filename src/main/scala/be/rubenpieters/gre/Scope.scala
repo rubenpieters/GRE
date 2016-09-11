@@ -41,7 +41,7 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
 
     val nextEntity = updatedThis.entitiesByProperty("INITIATIVE").head
     val (nextEntityUpdated, rule) = nextEntity.popRule
-    println(s"EXECUTING ${rule.label}")
+    println(s"${nextEntity.id} EXECUTING ${rule.label}")
     val nextEntityUpdatedMinusInit = MinusPropertyOverride(
       updatedThis.asInstanceOf[EntityResolver], nextEntityUpdated.id, "INITIATIVE", getEntityPropertySafe(nextEntityUpdated.id, "IN_DEC").getOrElse(0)
     ).applyOperation(nextEntityUpdated)

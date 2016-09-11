@@ -22,15 +22,18 @@ object BattleApp extends App {
     ,Map()
     ,Map()
     ,ruleEngineParameters
-    ,CyclicRuleStrategy(
+    ,CyclicRuleWithRepresentationStrategy(
       Seq(
-        equipRuleSet1Weapon
-        ,new RaiseShieldRule
-        ,new GenerateResource(1, 1)
-        ,new AttackWithWeaponRule("p2")
+        (equipRuleSet1Weapon, 2)
+        //,(new RaiseShieldRule, 2)
+        ,(new GenerateResource(1, 1), 2)
+        ,(new AttackWithWeaponRule("p2"), 2)
       )
+      ,ruleEngineParameters
     )
   )
+    .applyRule(equipBaseWeapon, "p1")
+    .asInstanceOf[Entity]
 
   val entity2 = Entity(
     "p2"
@@ -38,14 +41,17 @@ object BattleApp extends App {
     ,Map()
     ,Map()
     ,ruleEngineParameters
-    ,CyclicRuleStrategy(
+    ,CyclicRuleWithRepresentationStrategy(
       Seq(
-        equipRuleSet2Weapon
-        ,new GenerateResource(1, 1)
-        ,new AttackWithWeaponRule("p1")
+        (equipRuleSet2Weapon, 2)
+        ,(new GenerateResource(1, 1), 2)
+        ,(new AttackWithWeaponRule("p1"), 2)
       )
+      ,ruleEngineParameters
     )
   )
+    .applyRule(equipBaseWeapon, "p2")
+    .asInstanceOf[Entity]
 
   val scopeEntity = Entity(
     "scope"
@@ -60,10 +66,12 @@ object BattleApp extends App {
     entity => entity.advance.asInstanceOf[Entity]
   }
   println("-- stream")
-  entityStream.take(20).foreach{ x =>
+  entityStream.takeWhile { scope =>
+    scope.getEntityProperty("p1" ,"HP") > 0 && scope.getEntityProperty("p2", "HP") > 0
+  }.foreach{ x =>
     println(x.getEntityUnsafe("p1").properties, x.getEntityUnsafe("p2").properties)
     println(x.getEntityUnsafe("p1").appliedEffects, x.getEntityUnsafe("p2").appliedEffects)
-    //println(x.getEntityUnsafe("p1").ruleAdvanceStrategy, x.getEntityUnsafe("p2").ruleAdvanceStrategy)
+    println(x.getEntityUnsafe("p1").ruleAdvanceStrategy, x.getEntityUnsafe("p2").ruleAdvanceStrategy)
     println((x.getEntityUnsafe("p1").getProperty("HP"), x.getEntityUnsafe("p1").getProperty("RESOURCE_1")), (x.getEntityUnsafe("p2").getProperty("HP"), x.getEntityUnsafe("p2").getProperty("RESOURCE_1")))
   }
 }
@@ -92,6 +100,7 @@ object BattleGameGeneralRuleset {
   val allDamageTypes = (1 to 5 ).map { x => s"DAMAGE_RESIST_$x"}
 
   val baseWeapon = Weapon(1, 1, 0, 1)
+  val equipBaseWeapon = new EquipWeaponRule(baseWeapon)
 
   class AttackWithWeaponRule(targetId: String) extends AbstractRule {
     override def label = "ATTACK_WPN"
