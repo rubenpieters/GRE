@@ -25,13 +25,29 @@ trait Scope { self: RecursiveEntity with EntityResolver with Identifiable =>
 
   def advance: RecursiveEntity = {
     // TODO: move the advance logic code to somewhere more generic?
-    val nextEntity = entitiesByProperty("INITIATIVE").head
+
+    // if all entities are out of initiative, increase their initiative
+    val updatedThis = if (subEntities.forall { case (_, e) => e.getProperty("INITIATIVE") <= 0}) {
+      val updatedEntities = subEntities.mapValues { e => PlusPropertyOverride(
+        this, e.id, "INITIATIVE", getEntityProperty(e.id, "IN_INC")
+      ).applyOperation(e)
+      }
+      withUpdatedSubEntities(subEntities = updatedEntities)
+    } else {
+      this
+    }
+
+
+    val nextEntity = updatedThis.entitiesByProperty("INITIATIVE").head
     val (nextEntityUpdated, rule) = nextEntity.popRule
-    val scopeUpdated = nextEntityUpdated.id match {
-      case updatedId if updatedId.equals(id) => nextEntityUpdated
-      case _ => withUpdatedSubEntities(subEntities = subEntities + (nextEntityUpdated.id -> nextEntityUpdated))
+    val nextEntityUpdatedMinusInit = MinusPropertyOverride(
+      updatedThis.asInstanceOf[EntityResolver], nextEntityUpdated.id, "INITIATIVE", getEntityProperty(nextEntityUpdated.id, "IN_DEC")
+    ).applyOperation(nextEntityUpdated)
+    val scopeUpdated = nextEntityUpdatedMinusInit.id match {
+      case updatedId if updatedId.equals(id) => nextEntityUpdatedMinusInit
+      case _ => updatedThis.withUpdatedSubEntities(subEntities = updatedThis.subEntities + (nextEntityUpdatedMinusInit.id -> nextEntityUpdatedMinusInit))
     }
     // TODO: get rid of the cast
-    scopeUpdated.asInstanceOf[Scope].applyRule(rule, nextEntityUpdated.id)
+    scopeUpdated.asInstanceOf[Scope].applyRule(rule, nextEntityUpdatedMinusInit.id)
   }
 }

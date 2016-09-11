@@ -30,7 +30,7 @@ case class Entity(
       case false =>
         // NOTE: this sort of assumes that entity ids are globally unique, or at least within all possible scopes
         subEntities.flatMap{ case (entityId, entity) =>
-          entity.getEntity(entityId)
+          entity.getEntity(findId)
         }.headOption
     }
   }
@@ -100,7 +100,7 @@ trait RecursiveEntity {
 
   def entitiesByProperty(propertyName: String): Seq[Entity] = {
     // TODO: need to check if this is exactly the sorting we want
-    subEntities.values.toSeq.sortBy(_.properties.get(propertyName))
+    subEntities.values.toSeq.sortBy{ x => x.properties.get(propertyName).map(_ * -1)}
   }
 }
 

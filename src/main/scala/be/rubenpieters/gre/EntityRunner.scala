@@ -72,7 +72,7 @@ object EntityRunner extends App {
       entity.advance.asInstanceOf[Entity]
   }
   println("-- stream")
-  entityStream.take(5).foreach(println)
+  entityStream.take(20).foreach(println)
 
   /*val rule = entity.ruleAdvanceStrategy.rule
   val newEntity = entity.applyRule(rule, "p1")
