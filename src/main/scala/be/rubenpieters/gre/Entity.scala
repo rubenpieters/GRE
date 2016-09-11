@@ -99,7 +99,7 @@ case class Entity(
   }
 
   override def toString = {
-    s"Entity[Id: $id, properties: $properties, subEntities: ${subEntities.mkString("\n")}, effects: $appliedEffects, ruleStrategy: $ruleAdvanceStrategy]"
+    s"Entity[Id: $id, properties: $properties, subEntities: $subEntities, effects: $appliedEffects, ruleStrategy: $ruleAdvanceStrategy]"
   }
 }
 

@@ -4,13 +4,17 @@ import be.rubenpieters.gre._
 import be.rubenpieters.gre.utils.RngUtils
 import be.rubenpieters.utils.MathUtils
 
+import scala.util.Random
+
 /**
   * Created by ruben on 11/09/16.
   */
 object BattleApp extends App {
   import BattleGameGeneralRuleset._
+  import BattleGameRuleSet1._
+  import BattleGameRuleSet2._
 
-  val ruleEngineParameters = RuleEngineParameters.newParameters
+  val ruleEngineParameters = RuleEngineParameters(new Random(1))
 
   val entity1 = Entity(
     "p1"
@@ -20,11 +24,13 @@ object BattleApp extends App {
     ,ruleEngineParameters
     ,CyclicRuleStrategy(
       Seq(
-        new EquipWeaponRule(baseWeapon)
+        equipRuleSet1Weapon
+        ,new RaiseShieldRule
+        ,new GenerateResource(1, 1)
+        ,new AttackWithWeaponRule("p2")
       )
     )
   )
-
 
   val entity2 = Entity(
     "p2"
@@ -34,7 +40,9 @@ object BattleApp extends App {
     ,ruleEngineParameters
     ,CyclicRuleStrategy(
       Seq(
-        new EquipWeaponRule(baseWeapon)
+        equipRuleSet2Weapon
+        ,new GenerateResource(1, 1)
+        ,new AttackWithWeaponRule("p1")
       )
     )
   )
@@ -52,7 +60,12 @@ object BattleApp extends App {
     entity => entity.advance.asInstanceOf[Entity]
   }
   println("-- stream")
-  entityStream.take(5).foreach(println)
+  entityStream.take(20).foreach{ x =>
+    println(x.getEntityUnsafe("p1").properties, x.getEntityUnsafe("p2").properties)
+    println(x.getEntityUnsafe("p1").appliedEffects, x.getEntityUnsafe("p2").appliedEffects)
+    //println(x.getEntityUnsafe("p1").ruleAdvanceStrategy, x.getEntityUnsafe("p2").ruleAdvanceStrategy)
+    println((x.getEntityUnsafe("p1").getProperty("HP"), x.getEntityUnsafe("p1").getProperty("RESOURCE_1")), (x.getEntityUnsafe("p2").getProperty("HP"), x.getEntityUnsafe("p2").getProperty("RESOURCE_1")))
+  }
 }
 
 object BattleGameGeneralRuleset {
@@ -85,12 +98,12 @@ object BattleGameGeneralRuleset {
 
     override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver,
                                   ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
-      val currentFatigueTurns = entityResolver.getEntityProperty(actingEntity, "FATIGUE_TURNS")
-      if (currentFatigueTurns == 0) {
+      val currentResource1 = entityResolver.getEntityProperty(actingEntity, "RESOURCE_1")
+      val weaponFatigueTurns = entityResolver.getEntityProperty(actingEntity, "WEAPON_FATIGUE_TURNS")
+      if (currentResource1 >= weaponFatigueTurns) {
         // Fatigue Turns is zero -> able to attack
         val weaponMinAtk = entityResolver.getEntityProperty(actingEntity, "WEAPON_MIN_ATK")
         val weaponMaxAtk = entityResolver.getEntityProperty(actingEntity, "WEAPON_MAX_ATK")
-        val weaponFatigueTurns = entityResolver.getEntityProperty(actingEntity, "WEAPON_FATIGUE_TURNS")
         val weaponDamageType = entityResolver.getEntityProperty(actingEntity, "WEAPON_DAMAGE_TYPE")
         val damageResist = entityResolver.getEntityProperty(targetId, "DAMAGE_RESIST_" + weaponDamageType)
         // TODO: use a randomLongFromTo method
@@ -98,7 +111,7 @@ object BattleGameGeneralRuleset {
         val weaponAtkValueAfterResist = MathUtils.clampedMinus(weaponAtkValue, damageResist, 0)
         Seq(
           (targetId, PlusPropertyOverride(entityResolver, targetId, "HP", - weaponAtkValueAfterResist))
-          ,(actingEntity, ConstantPropertyOverride(actingEntity, "FATIGUE_TURNS", weaponFatigueTurns))
+          ,(actingEntity, MinusPropertyOverride(entityResolver, actingEntity, "RESOURCE_1", weaponFatigueTurns))
         )
       } else {
         // Fatigue Turns is not zero -> fumble attack, nothing happens
@@ -132,4 +145,43 @@ object BattleGameGeneralRuleset {
     }
   }
 
+}
+
+object BattleGameRuleSet1 {
+  import BattleGameGeneralRuleset._
+
+  val ruleSet1Weapon = Weapon(5, 10, 3, 1)
+
+  val equipRuleSet1Weapon = new EquipWeaponRule(ruleSet1Weapon)
+
+  class RaiseShieldRule() extends AbstractRule {
+    override def label = "RAISE_SHIELD"
+
+    override def createOperations(actingEntity: EntityId, entityResolver: EntityResolver,
+                                  ruleEngineParameters: RuleEngineParameters): Seq[(EntityId, Operation)] = {
+      Seq(
+        (actingEntity, SimpleAddEffectOperation(new RaiseShieldEffect(EffectRunning(1)), actingEntity))
+
+      ) ++ allDamageTypes.map{ dt => (actingEntity, PlusPropertyOverride(entityResolver, actingEntity, dt, 5))}
+    }
+
+    class RaiseShieldEffect(effectState: EffectState) extends Effect(effectState) {
+      override def createWithNewState(effectState: EffectState): Effect = new RaiseShieldEffect(effectState)
+
+      override def createOperations(actingEntity: EntityId, targetEntity: Entity, entityResolver: EntityResolver, ruleEngineParameters: RuleEngineParameters): Seq[Operation] = {
+        effectState match {
+          case EffectRunning(i) => Seq()
+          case EffectEnding => allDamageTypes.map{ dt => MinusPropertyOverride(entityResolver, actingEntity, dt, 5)}
+        }
+      }
+    }
+  }
+}
+
+object BattleGameRuleSet2 {
+  import BattleGameGeneralRuleset._
+
+  val ruleSet2Weapon = Weapon(2, 4, 1, 2)
+
+  val equipRuleSet2Weapon = new EquipWeaponRule(ruleSet2Weapon)
 }
