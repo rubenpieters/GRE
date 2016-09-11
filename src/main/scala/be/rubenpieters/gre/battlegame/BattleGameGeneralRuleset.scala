@@ -8,7 +8,51 @@ import be.rubenpieters.utils.MathUtils
   * Created by ruben on 11/09/16.
   */
 object BattleApp extends App {
+  import BattleGameGeneralRuleset._
 
+  val ruleEngineParameters = RuleEngineParameters.newParameters
+
+  val entity1 = Entity(
+    "p1"
+    ,entityBasicProperties ++ Map("INITIATIVE" -> 1L, "IN_INC" -> 0L, "IN_DEC" -> 0L)
+    ,Map()
+    ,Map()
+    ,ruleEngineParameters
+    ,CyclicRuleStrategy(
+      Seq(
+        new EquipWeaponRule(baseWeapon)
+      )
+    )
+  )
+
+
+  val entity2 = Entity(
+    "p2"
+    ,entityBasicProperties ++ Map("INITIATIVE" -> 1L, "IN_INC" -> 0L, "IN_DEC" -> 0L)
+    ,Map()
+    ,Map()
+    ,ruleEngineParameters
+    ,CyclicRuleStrategy(
+      Seq(
+        new EquipWeaponRule(baseWeapon)
+      )
+    )
+  )
+
+  val scopeEntity = Entity(
+    "scope"
+    ,Map()
+    ,Map("p1" -> entity1, "p2" -> entity2)
+    ,Map()
+    ,ruleEngineParameters
+    ,null
+  )
+
+  val entityStream = Stream.iterate(scopeEntity){
+    entity => entity.advance.asInstanceOf[Entity]
+  }
+  println("-- stream")
+  entityStream.take(5).foreach(println)
 }
 
 object BattleGameGeneralRuleset {
