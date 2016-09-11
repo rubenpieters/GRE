@@ -25,7 +25,7 @@ object BattleApp extends App {
     ,ShuffledCyclicRuleWithRepresentationStrategy.fromRuleSeq(
       Seq(
         (equipRuleSet1Weapon, 2)
-        //,(new RaiseShieldRule, 2)
+        ,(new RaiseShieldRule, 2)
         ,(new GenerateResource(1, 1), 2)
         ,(new AttackWithWeaponRule("p2"), 2)
       )
