@@ -3,9 +3,6 @@ package be.rubenpieters.gre
 import java.util.UUID
 
 import be.rubenpieters.utils.MathUtils
-import cats.data.Reader
-
-import scala.util.Random
 
 /**
   * Created by ruben on 29/08/2016.
