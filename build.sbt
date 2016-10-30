@@ -4,6 +4,11 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.8"
 )
 
+val doobieVersion = "0.3.0"
+
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats" % "0.8.0"
+  , "org.tpolecat" %% "doobie-core" % doobieVersion
+  , "org.tpolecat" %% "doobie-contrib-postgresql" % doobieVersion
+  , "org.tpolecat" %% "doobie-contrib-specs2" % doobieVersion
 )
