@@ -1,14 +1,41 @@
-lazy val commonSettings = Seq(
-  organization := "be.rubenpieters",
-  version := "0.0.1",
-  scalaVersion := "2.11.8"
-)
+organization := "be.rubenpieters"
+version := "0.0.1"
+scalaVersion := "2.11.8"
 
-val doobieVersion = "0.3.0"
+lazy val root =
+  project.in(file("."))
+    .configs( IntegrationTest )
+    .settings( Defaults.itSettings : _*)
+    .settings(
+      testOptions in Test := Seq(Tests.Filter(itFilter)),
+      testOptions in IntegrationTest := Seq(Tests.Filter(unitFilter))
+    )
+
+def itFilter(name: String): Boolean = name endsWith "IT"
+def unitFilter(name: String): Boolean = (name endsWith "Test") && !itFilter(name)
+
+val doobieVersion = "0.3.1-SNAPSHOT"
+val catsVersion = "0.7.2"
+val fs2Version = "0.9.0"
+val logbackVersion = "1.1.7"
+
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats" % "0.8.0"
-  , "org.tpolecat" %% "doobie-core" % doobieVersion
-  , "org.tpolecat" %% "doobie-contrib-postgresql" % doobieVersion
-  , "org.tpolecat" %% "doobie-contrib-specs2" % doobieVersion
+  "org.typelevel" %% "cats" % catsVersion
+  , "org.tpolecat" %% "doobie-core-cats" % doobieVersion
+  , "org.tpolecat" %% "doobie-postgres-cats" % doobieVersion
+  , "co.fs2" %% "fs2-core" % fs2Version
+
+  // LOGGING
+  ,"ch.qos.logback" % "logback-core" % logbackVersion
+  ,"ch.qos.logback" % "logback-classic" % logbackVersion
+
+  // TEST DEPENDENCIES
+  , "org.scalatest" %% "scalatest" % "2.2.6" % "it,test"
+  , "org.scalacheck" %% "scalacheck" % "1.12.5" % "it,test"
+
+  , "org.testcontainers" % "testcontainers" % "1.1.5" % "it,test"
 )
+
+scalacOptions in Test ++= Seq("-Yrangepos")
