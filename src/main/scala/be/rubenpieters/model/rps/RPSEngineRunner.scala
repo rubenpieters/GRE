@@ -1,11 +1,12 @@
 package be.rubenpieters.model.rps
 
-import be.rubenpieters.model.Strategy
+import be.rubenpieters.model.rps._
+import be.rubenpieters.model.{SimultaneousStrategyRunner, Strategy, StrategyRunner, WinDeclarer}
 
 /**
   * Created by ruben on 31/10/16.
   */
-object RPSEngineRunner {
+object RpsEngineRunner {
   // TODO: generalize these functions
   // TODO: change/generalize output type
   def turnWinner(strategy1: Strategy[RpsInput, RpsOutput], strategy2: Strategy[RpsInput, RpsOutput]): Int = {
@@ -18,3 +19,11 @@ object RPSEngineRunner {
     1
   }
 }
+
+object RpsStrategyRunner extends SimultaneousStrategyRunner[RpsInput, RpsOutput]
+
+//object RpsWinDeclarer extends WinDeclarer[RpsOutput] {
+//  override def winner(outs: (RpsOutput, RpsOutput)): Int = {
+//
+//  }
+//}

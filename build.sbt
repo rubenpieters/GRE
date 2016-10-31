@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   , "org.tpolecat" %% "doobie-core-cats" % doobieVersion
   , "org.tpolecat" %% "doobie-postgres-cats" % doobieVersion
   , "co.fs2" %% "fs2-core" % fs2Version
+  , "com.github.mpilquist" %% "simulacrum" % "0.10.0"
 
   // LOGGING
   ,"ch.qos.logback" % "logback-core" % logbackVersion
@@ -37,5 +38,7 @@ libraryDependencies ++= Seq(
 
   , "org.testcontainers" % "testcontainers" % "1.1.5" % "it,test"
 )
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 
 scalacOptions in Test ++= Seq("-Yrangepos")
