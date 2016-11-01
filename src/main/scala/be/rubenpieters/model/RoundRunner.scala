@@ -6,23 +6,28 @@ import cats.data.State
 /**
   * Created by ruben on 31/10/2016.
   */
-trait RoundRunner[In, Out, RState] {
+trait RoundRunner[In, Out, VisibleState, InvisibleState] {
   type RunOut = (Out, Out)
+  type RState = (VisibleState, InvisibleState)
 
-  def run(strategy1: Strategy[In, Out, RState], strategy2: Strategy[In, Out, RState], in: In): State[RState, RunOut]
+  def run(strategy1: Strategy[In, Out, VisibleState], strategy2: Strategy[In, Out, VisibleState], in: In): State[RState, Unit]
+  def rStateStrategy(strategy: Strategy[In, Out, VisibleState], in: In) = State[RState, Out] { case (vis, invis) =>
+    val (newVis, out) = strategy.getAction(in).run(vis).value
+    ((newVis, invis), out)
+  }
   def updateScore(runOut: RunOut): State[RState, Unit]
 }
 
 // TODO: the simultaneous is basically a sort of applicative strategy and the interleaving is a sort of monadic strategy
 // maybe should try to find some way to make use of this and make this look nicer
-trait SimultaneousRoundRunner[In, Out] extends RoundRunner[In, Out, RunnerState] {
-  def run(strategy1: Strategy[In, Out, RunnerState], strategy2: Strategy[In, Out, RunnerState], in: In): State[RunnerState, RunOut] =
+trait SimultaneousRoundRunner[In, Out, InvisibleState] extends RoundRunner[In, Out, RunnerState, InvisibleState] {
+  def run(strategy1: Strategy[In, Out, RunnerState], strategy2: Strategy[In, Out, RunnerState], in: In): State[RState, Unit] =
     for {
-      out1 <- strategy1.getAction(in)
-      out2 <- strategy2.getAction(in)
+      out1 <- rStateStrategy(strategy1, in)
+      out2 <- rStateStrategy(strategy2, in)
       runOut = (out1, out2)
       _ <- updateScore(runOut)
-    } yield runOut
+    } yield ()
 }
 
 //trait InterleavingStrategyRunner[In, Out, S] extends StrategyRunner[In, Out, S] {

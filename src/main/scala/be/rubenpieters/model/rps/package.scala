@@ -6,4 +6,6 @@ package be.rubenpieters.model
 package object rps {
   type RpsInput = Unit
   type RpsOutput = Rps3Model
+
+  type RpsScore = (Int, Int, Int)
 }
