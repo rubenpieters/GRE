@@ -73,7 +73,6 @@ object ImmutableRng {
     require(choices.values.forall(_ > 0))
     val choicesList = choices.toList
     val sums = choicesList.map(_._2).scan(0)(_ + _)
-    println(sums)
     val sum = sums.last
     // check against overflow
     require(sum > 0)
