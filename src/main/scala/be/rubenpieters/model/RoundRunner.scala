@@ -6,20 +6,23 @@ import cats.data.State
 /**
   * Created by ruben on 31/10/2016.
   */
-trait StrategyRunner[In, Out, RState] {
+trait RoundRunner[In, Out, RState] {
   type RunOut = (Out, Out)
 
   def run(strategy1: Strategy[In, Out, RState], strategy2: Strategy[In, Out, RState], in: In): State[RState, RunOut]
+  def updateScore(runOut: RunOut): State[RState, Unit]
 }
 
 // TODO: the simultaneous is basically a sort of applicative strategy and the interleaving is a sort of monadic strategy
 // maybe should try to find some way to make use of this and make this look nicer
-trait SimultaneousStrategyRunner[In, Out] extends StrategyRunner[In, Out, RunnerState] {
+trait SimultaneousRoundRunner[In, Out] extends RoundRunner[In, Out, RunnerState] {
   def run(strategy1: Strategy[In, Out, RunnerState], strategy2: Strategy[In, Out, RunnerState], in: In): State[RunnerState, RunOut] =
     for {
       out1 <- strategy1.getAction(in)
       out2 <- strategy2.getAction(in)
-    } yield (out1, out2)
+      runOut = (out1, out2)
+      _ <- updateScore(runOut)
+    } yield runOut
 }
 
 //trait InterleavingStrategyRunner[In, Out, S] extends StrategyRunner[In, Out, S] {
