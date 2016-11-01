@@ -5,5 +5,5 @@ package be.rubenpieters.model
   */
 package object rps {
   type RpsInput = Unit
-  type RpsOutput = (Float, Float, Float)
+  type RpsOutput = Rps3Model
 }
