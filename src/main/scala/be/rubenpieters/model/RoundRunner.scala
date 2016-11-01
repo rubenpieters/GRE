@@ -11,7 +11,7 @@ trait RoundRunner[In, Out, VisibleState, InvisibleState] {
   type RState = (VisibleState, InvisibleState)
 
   def run(strategy1: Strategy[In, Out, VisibleState], strategy2: Strategy[In, Out, VisibleState], in: In): State[RState, Unit]
-  def updateScore(runOut: RunOut): State[RState, Unit]
+  def worldUpdate(runOut: RunOut): State[RState, Unit]
 }
 
 // TODO: the simultaneous is basically a sort of applicative strategy and the interleaving is a sort of monadic strategy
@@ -22,7 +22,7 @@ trait SimultaneousRoundRunner[In, Out, InvisibleState] extends RoundRunner[In, O
       out1 <- strategy1.getAction(in).transformS[RState](_._1, (t, i) => (i, t._2))
       out2 <- strategy2.getAction(in).transformS[RState](_._1, (t, i) => (i, t._2))
       runOut = (out1, out2)
-      _ <- updateScore(runOut)
+      _ <- worldUpdate(runOut)
     } yield ()
 }
 
