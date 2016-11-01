@@ -16,6 +16,9 @@ case class ImmutableRng(seed: Long) {
 
   def nextInt(bound: Int): (ImmutableRng, Int) =
     ImmutableRng.nextInt(bound).run(this).value
+
+  def chooseOne[A](choices: Map[A, Int]): (ImmutableRng, A) =
+    ImmutableRng.chooseOne(choices).run(this).value
 }
 
 object ImmutableRng {
@@ -66,7 +69,18 @@ object ImmutableRng {
     } yield updatedR
   }
 
-  def chooseOne(choices: Map[Long, Long]) = {
+  def chooseOne[A](choices: Map[A, Int]): State[ImmutableRng, A] = {
+    require(choices.values.forall(_ > 0))
+    val choicesList = choices.toList
+    val sums = choicesList.map(_._2).scan(0)(_ + _)
+    println(sums)
+    val sum = sums.last
+    // check against overflow
+    require(sum > 0)
 
+    for {
+      randomInt <- nextInt(sum)
+      randomIndex = sums.indexWhere(x => randomInt < x) - 1
+    } yield choicesList(randomIndex)._1
   }
 }
