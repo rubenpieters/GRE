@@ -8,3 +8,5 @@ import cats.data.State
 trait Strategy[I, O, S] {
   def getAction(input: I): State[S, O]
 }
+
+case class StoredStrategy[I, O, S](playerId: Long, gameId: Long, name: String, strategy: Strategy[I, O, S])
