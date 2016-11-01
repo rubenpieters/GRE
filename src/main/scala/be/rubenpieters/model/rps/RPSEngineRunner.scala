@@ -22,7 +22,7 @@ object RpsEngineRunner {
 }
 
 object RpsRoundRunner extends SimultaneousRoundRunner[RpsInput, RpsOutput, RpsScore] {
-  override def updateScore(runOut: (RpsOutput, RpsOutput)): State[RState, RpsInput] = State[RState, Unit] { case (rng, score) =>
+  override def worldUpdate(runOut: (RpsOutput, RpsOutput)): State[RState, Unit] = State[RState, Unit] { case (rng, score) =>
     val (rps1, rps2) = runOut
     val updatedScore = rps1.beats(rps2) match {
       case Win => score.copy(_1 = score._1 + 1)
