@@ -1,29 +1,46 @@
 package be.rubenpieters.model.rps
 
-import be.rubenpieters.model.rps._
-import be.rubenpieters.model.{SimultaneousStrategyRunner, Strategy, StrategyRunner, WinDeclarer}
+import be.rubenpieters.model._
+import RpsRules.ops._
+import be.rubenpieters.util.ImmutableRng
+import cats.data._
 
 /**
   * Created by ruben on 31/10/16.
   */
 object RpsEngineRunner {
-  // TODO: generalize these functions
-  // TODO: change/generalize output type
-  def turnWinner(strategy1: Strategy[RpsInput, RpsOutput], strategy2: Strategy[RpsInput, RpsOutput]): Int = {
-    val action1 = strategy1.getAction(())
-    val action2 = strategy2.getAction(())
-    actionCompare(action1, action2)
-  }
+  def main(args: Array[String]) = {
+    val player1Strategy = RpsUniformStrategy
+    val player2Strategy = RpsUniformStrategy
 
-  def actionCompare(action1: RpsOutput, action2: RpsOutput): Int = {
-    1
+//    val runResult = RpsRoundRunner.run(player1Strategy, player2Strategy, ())
+//    val winResult = runResult.run((ImmutableRng(5), (0, 0, 0))).value
+//    println(winResult)
+    val result = RpsMatchRunner.runX(player1Strategy, player2Strategy, (), (ImmutableRng(5), (0, 0, 0)), RpsRoundRunner, 10000)
+    println(result.last)
   }
 }
 
-object RpsStrategyRunner extends SimultaneousStrategyRunner[RpsInput, RpsOutput]
+object RpsRoundRunner extends SimultaneousRoundRunner[RpsInput, RpsOutput, RpsScore] {
+  override def updateScore(runOut: (RpsOutput, RpsOutput)): State[RState, RpsInput] = State[RState, Unit] { case (rng, score) =>
+    val (rps1, rps2) = runOut
+    val updatedScore = rps1.beats(rps2) match {
+      case Win => score.copy(_1 = score._1 + 1)
+      case Loss => score.copy(_2 = score._2 + 1)
+      case Tie => score.copy(_3 = score._3 + 1)
+    }
+    ((rng, updatedScore), ())
+  }
+}
 
-//object RpsWinDeclarer extends WinDeclarer[RpsOutput] {
-//  override def winner(outs: (RpsOutput, RpsOutput)): Int = {
-//
-//  }
-//}
+object RpsMatchRunner extends MatchRunner[RpsInput, RpsOutput, RunnerState, RpsScore]
+
+object RpsWinDeclarer extends WinDeclarer[RpsOutput] {
+  def winner(outs: (RpsOutput, RpsOutput), perspective: Int): RpsWinState = {
+    val (rps1, rps2) = outs
+    perspective match {
+      case 1 => rps1.beats(rps2)
+      case 2 => rps2.beats(rps1)
+    }
+  }
+}

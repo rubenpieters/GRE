@@ -1,7 +1,7 @@
 package be.rubenpieters.model
 
 import be.rubenpieters.model.rps.RpsWinState
-import cats.data.State
+import cats.data._
 
 /**
   * Created by ruben on 31/10/2016.
