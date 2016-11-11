@@ -1,5 +1,6 @@
 package be.rubenpieters.model
 
+import be.rubenpieters.model.number.NumInput
 import be.rubenpieters.model.rps.RpsWinState
 import cats.data._
 
@@ -11,7 +12,8 @@ trait RoundRunner[In, Out, VisibleState, InvisibleState] {
   type RState = (VisibleState, InvisibleState)
 
   def run(strategy1: Strategy[In, Out, VisibleState], strategy2: Strategy[In, Out, VisibleState], in: In): State[RState, Unit]
-  def worldUpdate(runOut: RunOut): State[RState, Unit]
+  def produceInput(): State[RState, In]
+  def worldUpdate(runOut: RunOut, in: In): State[RState, Unit]
 }
 
 // TODO: the simultaneous is basically a sort of applicative strategy and the interleaving is a sort of monadic strategy
@@ -19,10 +21,11 @@ trait RoundRunner[In, Out, VisibleState, InvisibleState] {
 trait SimultaneousRoundRunner[In, Out, InvisibleState] extends RoundRunner[In, Out, RunnerState, InvisibleState] {
   def run(strategy1: Strategy[In, Out, RunnerState], strategy2: Strategy[In, Out, RunnerState], in: In): State[RState, Unit] =
     for {
-      out1 <- strategy1.getAction(in).transformS[RState](_._1, (t, i) => (i, t._2))
-      out2 <- strategy2.getAction(in).transformS[RState](_._1, (t, i) => (i, t._2))
+      input <- produceInput()
+      out1 <- strategy1.getAction(input).transformS[RState](_._1, (t, i) => (i, t._2))
+      out2 <- strategy2.getAction(input).transformS[RState](_._1, (t, i) => (i, t._2))
       runOut = (out1, out2)
-      _ <- worldUpdate(runOut)
+      _ <- worldUpdate(runOut, in)
     } yield ()
 }
 
