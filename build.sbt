@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   , "org.tpolecat" %% "doobie-postgres-cats" % doobieVersion
   , "co.fs2" %% "fs2-core" % fs2Version
   , "com.github.mpilquist" %% "simulacrum" % "0.10.0"
+  , "com.chuusai" %% "shapeless" % "2.3.2"
 
   // LOGGING
   ,"ch.qos.logback" % "logback-core" % logbackVersion
