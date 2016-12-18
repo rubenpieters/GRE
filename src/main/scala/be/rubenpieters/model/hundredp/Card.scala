@@ -1,25 +1,30 @@
 package be.rubenpieters.model.hundredp
 
-import be.rubenpieters.model.hundredp.Card.Card
-
 
 /**
   * Created by ruben on 18/12/16.
   */
+sealed trait Card {
+  def apply(cardContainer: CardContainer): CardContainer
+}
+
 object Card {
-  type Card = CardContainer => CardContainer
+  Function
 
   def ifNumberCard(func: NumberCard => NumberCard): Card => Card = card => card match {
     case numberCard @ NumberCard(_, _) => func(numberCard)
     case _ => card
   }
+
+  def playAndDiscard(card: Card, cardContainer: CardContainer, cardDiscard: CardDiscard)
+  : (CardContainer, CardDiscard) = {
+    (card(cardContainer), CardDiscard(cardDiscard.cards :+ card))
+  }
 }
 
 case class NumberCard(originalValue: Int, value: Int) extends Card {
-  override def apply(cardContainer: CardContainer): CardContainer =
+  def apply(cardContainer: CardContainer): CardContainer =
     cardContainer
-
-  override def toString(): String = s"NumberCard($originalValue, $value)"
 }
 
 object NumberCard {
@@ -29,7 +34,7 @@ object NumberCard {
 case class AddXToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(value = card.value + x)
 
-  override def apply(cardContainer: CardContainer): CardContainer = {
+  def apply(cardContainer: CardContainer): CardContainer = {
     cardContainer.map(Card.ifNumberCard(ncFunc))
   }
 }
@@ -37,7 +42,7 @@ case class AddXToField(x: Int) extends Card {
 case class AddXOToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x)
 
-  override def apply(cardContainer: CardContainer): CardContainer = {
+  def apply(cardContainer: CardContainer): CardContainer = {
     cardContainer.map(Card.ifNumberCard(ncFunc))
   }
 }

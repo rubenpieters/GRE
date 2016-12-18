@@ -1,9 +1,5 @@
 package be.rubenpieters.model.hundredp
 
-
-import be.rubenpieters.model.hundredp.Card.Card
-import cats.{Functor, Id, Traverse}
-
 /**
   * Created by ruben on 18/12/16.
   */
