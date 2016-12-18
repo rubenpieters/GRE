@@ -5,18 +5,26 @@ package be.rubenpieters.model.hundredp
   */
 object HundredPGame extends App {
   val cardField = CardField.default1Field
-  val cardDeck = CardDeck(List(AddXToField(2), AddXToField(2), AddXToField(2), AddXToField(2)))
   val cardDiscard = CardDiscard(List())
-  val (drawnCards, newDeck, newDiscard) = CardDeck.draw(cardDeck, cardDiscard, 3)
+  val cardDeck = CardDeck(List(AddXToField(1), AddXToField(2), AddXToField(3), AddXToField(4)))
 
-  val cardHand = CardHand(drawnCards)
+  val (field, discard, deck) = handleTurn(cardField, cardDiscard, cardDeck)
+    println(field)
+    println(discard)
+    println(deck)
+    println("+-----------")
+  val (field2, discard2, deck2) = handleTurn(field, discard, deck)
+    println(field2)
+    println(discard2)
+    println(deck2)
+    println("+-----------")
 
-//  cardHand.cards.head(cardField).cards.foreach(println)
-  val result = cardHand.cards.foldLeft((cardField: CardContainer, newDiscard, newDeck)){ case ((field, discard, deck), card) =>
-    val (newField, newDiscard) = Card.playAndDiscard(card, field, discard)
-    (newField, newDiscard, deck)
+  def handleTurn(cardField: CardContainer, cardDiscard: CardDiscard, cardDeck: CardDeck) = {
+    val (drawnCards, newDeck, newDiscard) = CardDeck.draw(cardDeck, cardDiscard, 3)
+    val hand = CardHand(drawnCards)
+    hand.cards.foldLeft((cardField: CardContainer, newDiscard, newDeck)){ case ((field, discard, deck), card) =>
+      val (newField, newDiscard) = Card.playAndDiscard(card, field, discard)
+      (newField, newDiscard, deck)
+    }
   }
-  println(result._1)
-  println(result._2)
-  println(result._3)
 }
