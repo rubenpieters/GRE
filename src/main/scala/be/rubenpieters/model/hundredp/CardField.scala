@@ -1,0 +1,13 @@
+package be.rubenpieters.model.hundredp
+
+/**
+  * Created by ruben on 18/12/16.
+  */
+case class CardField(cards: List[NumberCard]) extends CardContainer {
+
+}
+
+object CardField {
+  def default0Field = CardField(List.fill(10)(NumberCard(0)))
+  def default1Field = CardField(List.fill(10)(NumberCard(1)))
+}
