@@ -6,6 +6,9 @@ import cats.implicits._
 import cats.data._
 
 import scala.annotation.tailrec
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 /**
   * Created by ruben on 31/10/2016.
@@ -19,6 +22,9 @@ case class ImmutableRng(seed: Long) {
 
   def chooseOne[A](choices: Map[A, Int]): (ImmutableRng, A) =
     ImmutableRng.chooseOne(choices).run(this).value
+
+  def shuffle[T, CC[X] <: TraversableOnce[X]](xs: CC[T])(implicit bf: CanBuildFrom[CC[T], T, CC[T]]): (ImmutableRng, CC[T]) =
+    ImmutableRng.shuffle(xs).run(this).value
 }
 
 object ImmutableRng {
@@ -81,5 +87,42 @@ object ImmutableRng {
       randomInt <- nextInt(sum)
       randomIndex = sums.indexWhere(x => randomInt < x) - 1
     } yield choicesList(randomIndex)._1
+  }
+
+  def shuffle[T, CC[X] <: TraversableOnce[X]](xs: CC[T])(implicit bf: CanBuildFrom[CC[T], T, CC[T]]): State[ImmutableRng, CC[T]] = {
+    def swap(xs: CC[T], i1: Int, i2: Int) = {
+      val buf = new ArrayBuffer[T] ++= xs
+
+      def swap(i1: Int, i2: Int) {
+        val tmp = buf(i1)
+        buf(i1) = buf(i2)
+        buf(i2) = tmp
+      }
+
+      swap(i1, i2)
+
+      (bf(xs) ++= buf).result()
+    }
+
+    def _shuffle(xs: CC[T], n: Int): State[ImmutableRng, CC[T]] =
+      if (n == 1) {
+        State.pure(xs)
+      } else {
+        for {
+          k <- nextInt(n)
+          currState <- State.get[ImmutableRng]
+//          _ = println(s"K: $k, bound $n, $currState")
+          result <- {
+            val shuffledXs = swap(xs, n - 1, k)
+            _shuffle(shuffledXs, n - 1)
+          }
+        } yield result
+      }
+
+    if (xs.isEmpty) {
+      State.pure(xs)
+    } else {
+      _shuffle(xs, xs.size)
+    }
   }
 }
