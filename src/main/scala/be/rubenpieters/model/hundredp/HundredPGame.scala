@@ -2,6 +2,9 @@ package be.rubenpieters.model.hundredp
 
 import be.rubenpieters.util.ImmutableRng
 import cats.data.State
+import cats._
+import cats.data._
+import cats.implicits._
 
 /**
   * Created by ruben on 18/12/16.
@@ -31,34 +34,33 @@ object HundredPGame extends App {
   //    println(deck2)
   //    println("+-----------")
 
-  val play2 = for {
-    shuffledP1 <- Player.shuffleDeck(player1)
-    shuffledP2 <- Player.shuffleDeck(player2)
-    players0 = List(shuffledP1, shuffledP2)
-    _ = players0.foreach(println)
-    draw1 <- Player.drawWithShuffle(shuffledP1, 3)
-    (hand1, newPlayer1) = draw1
-    players1 <- State.pure(handleTurn(players0.updated(0, newPlayer1), hand1, 0))
-    _ = println("--------")
-    _ = players1.foreach(println)
-    draw2 <- Player.drawWithShuffle(players1(1), 3)
-    (hand2, newPlayer2) = draw2
-    players2 <- State.pure(handleTurn(players1.updated(1, newPlayer2), hand2, 1))
-    _ = println("--------")
-    _ = players2.foreach(println)
-  } yield players2
+  val initialPlayers = List(player1, player2)
 
-  play2.run(ImmutableRng.scrambled(1)).value
+  val turnOrder = initialPlayers.indices.toList
+  val turnOrders = List.fill(1)(turnOrder).flatten
 
-  def handleTurn(players: List[Player], hand: CardHand, turnPlayer: Int): List[Player] = {
+  type StateRng[A] = State[ImmutableRng, A]
+
+  val play = for {
+    players0 <- initialPlayers.traverseU(p => Player.shuffleDeck(p))
+    resultPlayers <- turnOrders.foldM[StateRng, List[Player]](players0){ case (players, turnPlayer) => handleTurn(players, turnPlayer)}
+  } yield resultPlayers
+
+  val result = play.run(ImmutableRng.scrambled(1)).value
+
+  result._2.foreach(println)
+
+  def handleTurn(players: List[Player], turnPlayer: Int): State[ImmutableRng, List[Player]] = for {
+    draw <- Player.drawWithShuffle(players(turnPlayer), 3)
+    (drawnHand, drawnPlayer) = draw
+    newPlayers <- State.pure(playHand(players.updated(turnPlayer, drawnPlayer), drawnHand, turnPlayer))
+  } yield newPlayers
+
+  def playHand(players: List[Player], hand: CardHand, turnPlayer: Int): List[Player] = {
     hand.cards.foldLeft(players) { case (ps, card) =>
       val newPlayers = ps.map(p => p.copy(cardField = card(p.cardField)))
       val newPlayersAndDiscardedCard = newPlayers.updated(turnPlayer, Player.discard(newPlayers(turnPlayer), card))
       newPlayersAndDiscardedCard
     }
   }
-
-  //  def playX(cardField: CardContainer, cardDiscard: CardDiscard, cardDeck: CardDeck, x: Int) = {
-  //    List.iterate((cardField, cardDiscard, cardDeck), x)((handleTurn _).tupled)
-  //  }
 }
