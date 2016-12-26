@@ -22,18 +22,6 @@ object HundredPGame extends App {
 
   val player2 = Player(cardFieldP2, cardDiscardP2, cardDeckP2)
 
-  //  playX(cardField, cardDiscard, cardDeck, 3).foreach(println)
-  //  val (field, discard, deck) = handleTurn(cardField, cardDiscard, cardDeck)
-  //    println(field)
-  //    println(discard)
-  //    println(deck)
-  //    println("+-----------")
-  //  val (field2, discard2, deck2) = handleTurn(field, discard, deck)
-  //    println(field2)
-  //    println(discard2)
-  //    println(deck2)
-  //    println("+-----------")
-
   val initialPlayers = List(player1, player2)
 
   val turnOrder = initialPlayers.indices.toList
