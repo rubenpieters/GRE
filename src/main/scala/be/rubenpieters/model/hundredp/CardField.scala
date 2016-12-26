@@ -3,13 +3,19 @@ package be.rubenpieters.model.hundredp
 /**
   * Created by ruben on 18/12/16.
   */
-case class CardField(cards: List[NumberCard]) extends CardContainer {
-  override def create: (List[Card]) => CardContainer = list => {
-    val filtered = list.flatMap(card => card match {
-      case nc @ NumberCard(_, _) => Option(nc)
+case class CardField(cards: List[NumberCard]) extends CardContainer[CardField] {
+  override def map(f: (Card) => Card): CardField = {
+    val filtered = cards.flatMap(card => card match {
+      case nc@NumberCard(_, _) => {
+        val transformed = f(nc: Card)
+        transformed match {
+          case nct@NumberCard(_,_) => Option(nct)
+          case _ => None
+        }
+      }
       case _ => None
     })
-    CardField.apply(filtered)
+    CardField(filtered)
   }
 }
 

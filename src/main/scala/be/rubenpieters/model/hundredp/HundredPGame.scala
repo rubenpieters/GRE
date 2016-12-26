@@ -1,14 +1,23 @@
 package be.rubenpieters.model.hundredp
 
 import be.rubenpieters.util.ImmutableRng
+import cats.data.State
 
 /**
   * Created by ruben on 18/12/16.
   */
 object HundredPGame extends App {
-  val cardField = CardField.default1Field
-  val cardDiscard = CardDiscard(List())
-  val cardDeck = CardDeck(List(AddXToField(1), AddXToField(2), AddXToField(3), AddXToField(4)))
+  val cardFieldP1 = CardField.default1Field
+  val cardDiscardP1 = CardDiscard(List())
+  val cardDeckP1 = CardDeck(List(AddXToField(1), AddXToField(2), AddXToField(3), AddXToField(4)))
+
+  val player1 = Player(cardFieldP1, cardDiscardP1, cardDeckP1)
+
+  val cardFieldP2 = CardField.default1Field
+  val cardDiscardP2 = CardDiscard(List())
+  val cardDeckP2 = CardDeck(List(AddXToField(5), AddXToField(6), AddXToField(7), AddXToField(8)))
+
+  val player2 = Player(cardFieldP2, cardDiscardP2, cardDeckP2)
 
   //  playX(cardField, cardDiscard, cardDeck, 3).foreach(println)
   //  val (field, discard, deck) = handleTurn(cardField, cardDiscard, cardDeck)
@@ -23,26 +32,29 @@ object HundredPGame extends App {
   //    println("+-----------")
 
   val play2 = for {
-    t1 <- handleTurn(cardField, cardDiscard, cardDeck)
-    (cardField1, cardDiscard1, cardDeck1) = t1
-    _ = println(t1)
-    t2 <- handleTurn(cardField1, cardDiscard1, cardDeck1)
-    (cardField2, cardDiscard2, cardDeck2) = t2
-    _ = println(t2)
-  } yield t2
+    shuffledP1 <- Player.shuffleDeck(player1)
+    shuffledP2 <- Player.shuffleDeck(player2)
+    players0 = List(shuffledP1, shuffledP2)
+    _ = players0.foreach(println)
+    draw1 <- Player.drawWithShuffle(shuffledP1, 3)
+    (hand1, newPlayer1) = draw1
+    players1 <- State.pure(handleTurn(players0.updated(0, newPlayer1), hand1, 0))
+    _ = println("--------")
+    _ = players1.foreach(println)
+    draw2 <- Player.drawWithShuffle(players1(1), 3)
+    (hand2, newPlayer2) = draw2
+    players2 <- State.pure(handleTurn(players1.updated(1, newPlayer2), hand2, 1))
+    _ = println("--------")
+    _ = players2.foreach(println)
+  } yield players2
 
   play2.run(ImmutableRng.scrambled(1)).value
 
-  def handleTurn(cardField: CardContainer, cardDiscard: CardDiscard, cardDeck: CardDeck) = {
-    for {
-      s <- CardDeck.drawWithShuffle(cardDeck, cardDiscard, 3)
-      (drawnCards, newDeck, newDiscard) = s
-    } yield {
-      val hand = CardHand(drawnCards)
-      hand.cards.foldLeft((cardField: CardContainer, newDiscard, newDeck)) { case ((field, discard, deck), card) =>
-        val (newField, newDiscard) = Card.playAndDiscard(card, field, discard)
-        (newField, newDiscard, deck)
-      }
+  def handleTurn(players: List[Player], hand: CardHand, turnPlayer: Int): List[Player] = {
+    hand.cards.foldLeft(players) { case (ps, card) =>
+      val newPlayers = ps.map(p => p.copy(cardField = card(p.cardField)))
+      val newPlayersAndDiscardedCard = newPlayers.updated(turnPlayer, Player.discard(newPlayers(turnPlayer), card))
+      newPlayersAndDiscardedCard
     }
   }
 

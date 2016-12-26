@@ -6,8 +6,8 @@ import cats.data.State
 /**
   * Created by ruben on 18/12/16.
   */
-case class CardDeck(cards: List[Card]) extends CardContainer {
-  override def create: (List[Card]) => CardContainer = CardDeck.apply
+case class CardDeck(cards: List[Card]) extends CardContainer[CardDeck] {
+  override def map(f: (Card) => Card): CardDeck = CardDeck(cards.map(f))
 }
 
 object CardDeck {

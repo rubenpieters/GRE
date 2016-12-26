@@ -5,7 +5,7 @@ package be.rubenpieters.model.hundredp
   * Created by ruben on 18/12/16.
   */
 sealed trait Card {
-  def apply(cardContainer: CardContainer): CardContainer
+  def apply[A <: CardContainer[A]](cardContainer: A): A
 }
 
 object Card {
@@ -16,14 +16,14 @@ object Card {
     case _ => card
   }
 
-  def playAndDiscard(card: Card, cardContainer: CardContainer, cardDiscard: CardDiscard)
-  : (CardContainer, CardDiscard) = {
+  def playAndDiscard[A <: CardContainer[A]](card: Card, cardContainer: A, cardDiscard: CardDiscard)
+  : (A, CardDiscard) = {
     (card(cardContainer), CardDiscard(cardDiscard.cards :+ card))
   }
 }
 
 case class NumberCard(originalValue: Int, value: Int) extends Card {
-  def apply(cardContainer: CardContainer): CardContainer =
+  def apply[A <: CardContainer[A]](cardContainer: A): A =
     cardContainer
 }
 
@@ -34,7 +34,7 @@ object NumberCard {
 case class AddXToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(value = card.value + x)
 
-  def apply(cardContainer: CardContainer): CardContainer = {
+  def apply[A <: CardContainer[A]](cardContainer: A): A = {
     cardContainer.map(Card.ifNumberCard(ncFunc))
   }
 }
@@ -42,7 +42,7 @@ case class AddXToField(x: Int) extends Card {
 case class AddXOToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x)
 
-  def apply(cardContainer: CardContainer): CardContainer = {
+  def apply[A <: CardContainer[A]](cardContainer: A): A = {
     cardContainer.map(Card.ifNumberCard(ncFunc))
   }
 }
