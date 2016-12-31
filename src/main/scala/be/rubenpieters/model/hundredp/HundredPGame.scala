@@ -6,6 +6,8 @@ import cats._
 import cats.data._
 import cats.implicits._
 
+import scala.annotation.tailrec
+
 /**
   * Created by ruben on 18/12/16.
   */
@@ -61,6 +63,7 @@ object HundredPGame extends App {
       Left(newPlayers): GameState
     }}
 
+  @tailrec
   def playHand(players: List[Player], turnPlayer: Int): List[Player] = {
     val player = players(turnPlayer)
     if (player.cardHand.cards.isEmpty) {
