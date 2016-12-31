@@ -46,3 +46,12 @@ case class AddXOToField(x: Int) extends Card {
     player.copy(cardField = player.cardField.map(Card.ifNumberCard(ncFunc)))
   }
 }
+
+case class AddXOToHand(x: Int) extends Card {
+  val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x)
+
+  override def apply(player: Player): Player = {
+    player.copy(cardHand = player.cardHand.map(Card.ifNumberCard(ncFunc)))
+  }
+}
+
