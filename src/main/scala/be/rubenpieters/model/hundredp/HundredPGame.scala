@@ -62,7 +62,7 @@ object HundredPGame extends App {
 
   def playHand(players: List[Player], hand: CardHand, turnPlayer: Int): List[Player] = {
     hand.cards.foldLeft(players) { case (ps, card) =>
-      val newPlayers = ps.map(p => p.copy(cardField = card(p.cardField)))
+      val newPlayers = ps.map(card(_))
       val newPlayersAndDiscardedCard = newPlayers.updated(turnPlayer, Player.discard(newPlayers(turnPlayer), card))
       newPlayersAndDiscardedCard
     }

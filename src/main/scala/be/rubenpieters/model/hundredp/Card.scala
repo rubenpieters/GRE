@@ -5,7 +5,7 @@ package be.rubenpieters.model.hundredp
   * Created by ruben on 18/12/16.
   */
 sealed trait Card {
-  def apply[A <: CardContainer[A]](cardContainer: A): A
+  def apply(player: Player): Player
 }
 
 object Card {
@@ -16,15 +16,15 @@ object Card {
     case _ => card
   }
 
-  def playAndDiscard[A <: CardContainer[A]](card: Card, cardContainer: A, cardDiscard: CardDiscard)
-  : (A, CardDiscard) = {
-    (card(cardContainer), CardDiscard(cardDiscard.cards :+ card))
+  def playAndDiscard(card: Card, player: Player, cardDiscard: CardDiscard)
+  : (Player, CardDiscard) = {
+    (card(player), CardDiscard(cardDiscard.cards :+ card))
   }
 }
 
 case class NumberCard(originalValue: Int, value: Int) extends Card {
-  def apply[A <: CardContainer[A]](cardContainer: A): A =
-    cardContainer
+  override def apply(player: Player): Player =
+    player
 }
 
 object NumberCard {
@@ -34,15 +34,15 @@ object NumberCard {
 case class AddXToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(value = card.value + x)
 
-  def apply[A <: CardContainer[A]](cardContainer: A): A = {
-    cardContainer.map(Card.ifNumberCard(ncFunc))
+  override def apply(player: Player): Player = {
+    player.copy(cardField = player.cardField.map(Card.ifNumberCard(ncFunc)))
   }
 }
 
 case class AddXOToField(x: Int) extends Card {
   val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x)
 
-  def apply[A <: CardContainer[A]](cardContainer: A): A = {
-    cardContainer.map(Card.ifNumberCard(ncFunc))
+  override def apply(player: Player): Player = {
+    player.copy(cardField = player.cardField.map(Card.ifNumberCard(ncFunc)))
   }
 }
