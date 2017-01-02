@@ -48,10 +48,49 @@ case class AddXOToField(x: Int) extends Card {
 }
 
 case class AddXOToHand(x: Int) extends Card {
-  val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x)
+  val ncFunc: NumberCard => NumberCard = card => card.copy(originalValue = card.originalValue + x, value = card.value + x)
 
   override def apply(player: Player): Player = {
     player.copy(cardHand = player.cardHand.map(Card.ifNumberCard(ncFunc)))
   }
 }
 
+case object AverageField extends Card {
+  def ncFunc(avg: Int): NumberCard => NumberCard = card => card.copy(value = avg)
+
+  override def apply(player: Player): Player = {
+    val avg = player.cardField.cards.foldLeft(0){ case (acc, card) => card.value + acc} / 10
+    player.copy(cardField = player.cardField.map(Card.ifNumberCard(ncFunc(avg))))
+  }
+}
+
+case object ReplaceLowest extends Card {
+  override def apply(player: Player) = {
+    implicit val ncOrdering = new Ordering[NumberCard] {
+      override def compare(x: NumberCard, y: NumberCard): Int = Ordering[Int].compare(x.value, y.value)
+    }
+    val lowestFieldCardIndex = player.cardField.cards.zipWithIndex.min._2
+    val lowestFieldCard = player.cardField.cards.min
+    val handNumberCards = player.cardHand.cards.flatMap{
+      case numberCard @ NumberCard(_, _) => Option(numberCard)
+      case _ => None
+    }
+    if (handNumberCards.nonEmpty) {
+      val lowestHandCardIndex = handNumberCards.zipWithIndex.min._2
+      val lowestHandCard = handNumberCards.min
+
+      player.copy(cardField = CardField(player.cardField.cards.updated(lowestFieldCardIndex, lowestHandCard))
+        , cardHand = CardHand(player.cardHand.cards.updated(lowestHandCardIndex, lowestFieldCard)))
+    } else {
+      player
+    }
+  }
+}
+
+case object ResetToOriginal extends Card {
+  val ncFunc: NumberCard => NumberCard = card => card.copy(value = card.originalValue)
+
+  override def apply(player: Player): Player = {
+    player.copy(cardHand = player.cardHand.map(Card.ifNumberCard(ncFunc)))
+  }
+}
