@@ -23,6 +23,10 @@ object Card {
 }
 
 case class NumberCard(originalValue: Int, value: Int) extends Card {
+  implicit val ncOrdering = new Ordering[NumberCard] {
+    override def compare(x: NumberCard, y: NumberCard): Int = Ordering[Int].compare(x.value, y.value)
+  }
+
   override def apply(player: Player): Player =
     player
 }
@@ -66,18 +70,13 @@ case object AverageField extends Card {
 
 case object ReplaceLowest extends Card {
   override def apply(player: Player) = {
-    implicit val ncOrdering = new Ordering[NumberCard] {
-      override def compare(x: NumberCard, y: NumberCard): Int = Ordering[Int].compare(x.value, y.value)
-    }
-    val lowestFieldCardIndex = player.cardField.cards.zipWithIndex.min._2
-    val lowestFieldCard = player.cardField.cards.min
+    val (lowestFieldCard, lowestFieldCardIndex) = player.cardField.cards.zipWithIndex.min
     val handNumberCards = player.cardHand.cards.flatMap{
       case numberCard @ NumberCard(_, _) => Option(numberCard)
       case _ => None
     }
     if (handNumberCards.nonEmpty) {
-      val lowestHandCardIndex = handNumberCards.zipWithIndex.min._2
-      val lowestHandCard = handNumberCards.min
+      val (lowestHandCard, lowestHandCardIndex) = handNumberCards.zipWithIndex.min
 
       player.copy(cardField = CardField(player.cardField.cards.updated(lowestFieldCardIndex, lowestHandCard))
         , cardHand = CardHand(player.cardHand.cards.updated(lowestHandCardIndex, lowestFieldCard)))
@@ -92,5 +91,16 @@ case object ResetToOriginal extends Card {
 
   override def apply(player: Player): Player = {
     player.copy(cardHand = player.cardHand.map(Card.ifNumberCard(ncFunc)))
+  }
+}
+
+case object SubtractSecondHighestFromHighest extends Card {
+  override def apply(player: Player) = {
+    val (highestCard, highestCardIndex) = player.cardField.cards.zipWithIndex.min
+    val (secondHighestCard, secondHighestCardIndex) = player.cardField.cards.updated(highestCardIndex, NumberCard(Int.MinValue, Int.MinValue)).zipWithIndex.min
+
+    player.copy(cardField = CardField(player.cardField.cards
+      .updated(highestCardIndex, NumberCard(highestCard.value - secondHighestCard.value))
+    ))
   }
 }
