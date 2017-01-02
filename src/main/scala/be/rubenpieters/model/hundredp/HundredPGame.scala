@@ -48,9 +48,17 @@ object HundredPGame extends App {
     }
   } yield resultPlayers
 
-  val result = play.run(ImmutableRng.scrambled(1)).value
+  val result = (1 to 1000).map(i => play.run(ImmutableRng.scrambled(i)).value._2)
 
-  println(result._2)
+  val groupedResults = result.map(x => x match {
+    case Left(players) => players.map(_ => false)
+    case Right(playerWithResults) => playerWithResults.map(_._2)
+  })
+    .groupBy(identity)
+    .toMap
+    .mapValues(_.size)
+
+  println(groupedResults)
 
   def handleTurn(players: List[Player], turnPlayer: Int): State[ImmutableRng, GameState] = for {
     drawnPlayer <- Player.drawWithShuffle(players(turnPlayer), 3)

@@ -23,15 +23,15 @@ object Card {
 }
 
 case class NumberCard(originalValue: Int, value: Int) extends Card {
-  implicit val ncOrdering = new Ordering[NumberCard] {
-    override def compare(x: NumberCard, y: NumberCard): Int = Ordering[Int].compare(x.value, y.value)
-  }
-
   override def apply(player: Player): Player =
     player
 }
 
 object NumberCard {
+  implicit val ncOrdering = new Ordering[NumberCard] {
+    override def compare(x: NumberCard, y: NumberCard): Int = Ordering[Int].compare(x.value, y.value)
+  }
+
   def apply(originalValue: Int): NumberCard = NumberCard(originalValue, originalValue)
 }
 
